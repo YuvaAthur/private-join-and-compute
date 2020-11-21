@@ -54,8 +54,8 @@ DEFINE_string(client_data_file, "",
 //DEFINE_int32(multi_column,0,"Indicates 1 or 2 columns in the Client Data Set");
 
 //enumerator value sent in protocol
-DEFINE_int32(operator_1,0,"Operator One");
-DEFINE_int32(operator_2,0,"Operator Two");
+DEFINE_int32(operator_1,0,"The aggregation operation to be applied to first associated data column");
+DEFINE_int32(operator_2,0,"The aggregation operation to be applied to second associated data column");
     // SUM = 0;
     // SUMSQ = 1;
     // VARN = 2;

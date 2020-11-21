@@ -7,3 +7,7 @@
 bazel-*
 buildifer
 ~/.cache/bazel/
+*.key
+*.crt
+*).cc  
+

@@ -22,7 +22,8 @@ message EncryptedSet {
   repeated EncryptedElement elements = 1;
 }
 
-// Holds an encrypted value and possibly encrypted associated data.
+/*============================================================*/
+//YAR:: Add: Additional Data Column
 message EncryptedElement {
   optional bytes element = 1;
   optional bytes associated_data_1 = 2;
@@ -35,9 +36,9 @@ message EncryptedElement {
 //      -  on the homomorphic encryption used
 //      -  applied on ONE Column only
 //  Possible : 
-//      1) sum(col) 
+//      1) sum(col) --> avg(col) = sum(col)/n
 //      2) sum(col^2) 
-//      3) var(col) = sum([(x-avg(col))^2])/n 
+//      3) varn(col) = sum([(x-avg(col))^2])
 message OpCode {
   enum Operator {
     SUM = 0;

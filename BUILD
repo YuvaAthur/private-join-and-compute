@@ -14,6 +14,13 @@
 
 load("@com_github_grpc_grpc//bazel:grpc_build_system.bzl", "grpc_proto_library")
 
+# integrating shell build
+# load("@rules_cc//cc:defs.bzl", "cc_library")
+# load("@rules_proto//proto:defs.bzl", "proto_library")
+
+# package(default_visibility = ["//visibility:public"])
+#
+
 grpc_proto_library(
     name = "match_proto",
     srcs = ["match.proto"],
@@ -90,6 +97,8 @@ cc_library(
         "//crypto:bn_util",
         "//crypto:ec_commutative_cipher",
         "//crypto:paillier",
+        "//crypto:elgamal",
+        # "//shell:symmetric_encryption",
         "//util:status",
         "//util:status_includes",
         "@com_google_absl//absl/memory",
@@ -140,6 +149,8 @@ cc_library(
         "//crypto:bn_util",
         "//crypto:ec_commutative_cipher",
         "//crypto:paillier",
+        "//crypto:elgamal",
+ #       "//shell:symmetric_encryption",
         "//util:status",
         "//util:status_includes",
         "@com_google_absl//absl/memory",

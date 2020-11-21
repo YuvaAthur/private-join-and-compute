@@ -25,6 +25,14 @@
 #include <memory>
 #include <string>
 
+#include <thread>  // NOLINT
+#include <memory>
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <grpc++/grpc++.h>
+
 #include "gflags/gflags.h"
 
 #include "include/grpc/grpc_security_constants.h"
@@ -44,7 +52,14 @@
 #include "absl/memory/memory.h"
 #include "absl/strings/str_cat.h"
 
-DEFINE_string(port, "0.0.0.0:10501", "Port on which to contact server");
+
+// switch to use MTLS
+DEFINE_int32(use_mtls,0,"Swtich to use MTLS approach,dafault no MTLS");
+// for local grpc
+DEFINE_string(port0, "0.0.0.0:10501", "Port on which to contact server");
+// for MTLS grpc
+DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to contact server");
+
 DEFINE_string(client_data_file, "",
               "The file from which to read the client database.");
 DEFINE_int32(
@@ -119,33 +134,65 @@ int ExecuteProtocol() {
   //    - Improve performance by persisting the primes for subsequent runs?
 
 
-std::unique_ptr<::private_join_and_compute::ProtocolClient> client  = nullptr;
-if(std::int32_t(FLAGS_multi_column)){
-  // 2 columns tuple implementation
-  client =
-      absl::make_unique<::private_join_and_compute::PrivateIntersectionSumProtocolClientTupleImpl>(
-          &context, std::move(client_identifiers_and_associated_values),
-          FLAGS_paillier_modulus_size,FLAGS_operator_1,FLAGS_operator_2);
-}else{
-  //existing pair implementation
-  client =
-      absl::make_unique<::private_join_and_compute::PrivateIntersectionSumProtocolClientImpl>(
-          &context, std::move(std::get<0>(client_identifiers_and_associated_values)),
-          std::move(std::get<1>(client_identifiers_and_associated_values)),
-          FLAGS_paillier_modulus_size,FLAGS_operator_1);
-}
+  std::unique_ptr<::private_join_and_compute::ProtocolClient> client  = nullptr;
+  if(std::int32_t(FLAGS_multi_column)){
+    // 2 columns tuple implementation
+    client =
+        absl::make_unique<::private_join_and_compute::PrivateIntersectionSumProtocolClientTupleImpl>(
+            &context, std::move(client_identifiers_and_associated_values),
+            FLAGS_paillier_modulus_size,FLAGS_operator_1,FLAGS_operator_2);
+  }else{
+    //existing pair implementation
+    client =
+        absl::make_unique<::private_join_and_compute::PrivateIntersectionSumProtocolClientImpl>(
+            &context, std::move(std::get<0>(client_identifiers_and_associated_values)),
+            std::move(std::get<1>(client_identifiers_and_associated_values)),
+            FLAGS_paillier_modulus_size,FLAGS_operator_1);
+  }
 
-  // Consider grpc::SslServerCredentials if not running locally.
-  std::unique_ptr<PrivateJoinAndComputeRpc::Stub> stub =
+  // YAR: Choose implementation based on MTLS switch
+  std::unique_ptr<PrivateJoinAndComputeRpc::Stub> stub = nullptr;
+  if(std::int32_t(FLAGS_use_mtls)){
+    // Certificate based authentication model for MTLS
+    grpc::SslCredentialsOptions sslOpts{};
+
+    auto contents = [](const std::string& filename) -> std::string {
+        std::ifstream fh(filename);
+        std::stringstream buffer;
+        buffer << fh.rdbuf();
+        fh.close();
+        return buffer.str();
+    };
+
+    std::string key = contents ("client.key");
+    std::string cert = contents ("client.crt");
+    std::string root = contents ("ca.crt");
+  
+    sslOpts.pem_root_certs=root;	
+    sslOpts.pem_cert_chain=cert;
+    sslOpts.pem_private_key=key;
+    
+    auto creds = grpc::SslCredentials(sslOpts);
+    
+    stub =
       PrivateJoinAndComputeRpc::NewStub(::grpc::CreateChannel(
-          FLAGS_port, ::grpc::experimental::LocalCredentials(
-                          grpc_local_connect_type::LOCAL_TCP)));
+            FLAGS_port1, creds)); 
+  } else {
+    //Consider grpc::SslServerCredentials if not running locally.
+    stub =
+        PrivateJoinAndComputeRpc::NewStub(::grpc::CreateChannel(
+            FLAGS_port0, ::grpc::experimental::LocalCredentials(
+                            grpc_local_connect_type::LOCAL_TCP)));
+  }
   InvokeServerHandleClientMessageSink invoke_server_handle_message_sink(
       std::move(stub));
+
+
 
   // Execute StartProtocol and wait for response from ServerRoundOne.
   std::cout
       << "Client: Starting the protocol." << std::endl
+      << "Client: MTLS Switch (0: local, 1: cert) " << std::int32_t(FLAGS_use_mtls) << std::endl
       << "Client: Waiting for response and encrypted set from the server..."
       << std::endl;
   auto start_protocol_status =

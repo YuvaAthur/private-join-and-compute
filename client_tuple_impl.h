@@ -23,6 +23,7 @@
 #include "util/status.inc"
 #include "crypto/ec_commutative_cipher.h"
 
+
 namespace private_join_and_compute {
 
 // This class represents the "client" part of the intersection-sum protocol,

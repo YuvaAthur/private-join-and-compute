@@ -26,6 +26,12 @@
 #include <string>
 #include <thread>  // NOLINT
 
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+
 #include "gflags/gflags.h"
 
 #include "include/grpc/grpc_security_constants.h"
@@ -42,7 +48,13 @@
 #include "protocol_server.h"
 #include "absl/memory/memory.h"
 
-DEFINE_string(port, "0.0.0.0:10501", "Port on which to listen");
+// switch to use MTLS
+DEFINE_int32(use_mtls,0,"Swtich to use MTLS approach,dafault no MTLS");
+// for local credentials
+DEFINE_string(port0, "0.0.0.0:10501", "Port on which to listen");
+// for certificate crendentials
+DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen");
+
 DEFINE_string(server_data_file, "",
               "The file from which to read the server database.");
 //--mult_column : binary : 0 means 1 column (default), 1 means 2 columns
@@ -59,9 +71,11 @@ int RunServer() {
     return 1;
   }
 
+
   ::private_join_and_compute::Context context;
   std::unique_ptr<::private_join_and_compute::ProtocolServer> server = nullptr;
 
+  //YAR: Set up the server implementation based on 1 or 2 columns
   if(std::int32_t(FLAGS_multi_column)){
   // 2 columns tuple implementation
   server =
@@ -74,22 +88,53 @@ int RunServer() {
           &context, std::move(maybe_server_identifiers.value()));  
   }
 
-
-
   ::private_join_and_compute::PrivateJoinAndComputeRpcImpl service(std::move(server));
 
   ::grpc::ServerBuilder builder;
-  // Consider grpc::SslServerCredentials if not running locally.
-  builder.AddListeningPort(FLAGS_port,
+
+  // YAR: Choose implementation based on MTLS switch
+  if(std::int32_t(FLAGS_use_mtls)){
+    // Certificate based MTLS implementation
+    grpc::SslServerCredentialsOptions sslOpts{};
+    sslOpts.client_certificate_request = GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY;
+
+    auto contents = [](const std::string& filename) -> std::string {
+        std::ifstream fh(filename);
+        std::stringstream buffer;
+        buffer << fh.rdbuf();
+        fh.close();
+        return buffer.str();
+    };
+
+    std::string key = contents ("server.key");
+    std::string cert = contents ("server.crt");
+    std::string root = contents ("ca.crt");
+
+    grpc::SslServerCredentialsOptions::PemKeyCertPair keycert = { key,cert };
+
+    sslOpts.pem_root_certs = root;
+    sslOpts.pem_key_cert_pairs.push_back(keycert);
+    auto creds = grpc::SslServerCredentials(sslOpts);
+    builder.AddListeningPort(FLAGS_port1,creds);    
+  } else {
+    builder.AddListeningPort(FLAGS_port0,
                            ::grpc::experimental::LocalServerCredentials(
                                grpc_local_connect_type::LOCAL_TCP));
+  }  
+  
   builder.RegisterService(&service);
   std::unique_ptr<::grpc::Server> grpc_server(builder.BuildAndStart());
+
 
   // Run the server on a background thread.
   std::thread grpc_server_thread(
       [](::grpc::Server* grpc_server_ptr) {
-        std::cout << "Server: listening on " << FLAGS_port << std::endl;
+        if (int32_t(FLAGS_use_mtls)){
+          std::cout << "Server: listening on " << FLAGS_port1 << std::endl;
+        }else{
+          std::cout << "Server: listening on " << FLAGS_port0 << std::endl;
+        }
+        
         grpc_server_ptr->Wait();
       },
       grpc_server.get());

@@ -35,12 +35,12 @@ message EncryptedElement {
 //  Possible : 
 //      1) sum(col) 
 //      2) sum(col^2) 
-//      3) var(col) = sum([(x-avg(col))^2])
+//      3) varn(col) = sum([(x-avg(col))^2])
 message OpCode {
   enum Operator {
     SUM = 0;
     SUMSQ = 1;
-    VAR = 2;
+    VARN = 2;
   }
   Operator op = 1 [default = SUM];
 }
@@ -110,6 +110,38 @@ DEFINE_int32(multi_column,0,"Indicates 1 or 2 columns in the Client Data Set");
 + Dummy Set Generation
 Ref: https://stackoverflow.com/questions/7616511/calculate-mean-and-standard-deviation-from-a-vector-of-samples-in-c-using-boos
 
+# Integrating MTLS on client and server
+New flag for client 
+```c++
+// switch to use MTLS
+DEFINE_int32(use_mtls,0,"Swtich to use MTLS approach,dafault no MTLS");
+// for local grpc
+DEFINE_string(port0, "0.0.0.0:10501", "Port on which to contact server");
+// for MTLS grpc
+DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to contact server");
+
+```
+Added mtls flag for server
+```c++
+// switch to use MTLS
+DEFINE_int32(use_mtls,0,"Swtich to use MTLS approach,dafault no MTLS");
+// for local credentials
+DEFINE_string(port0, "0.0.0.0:10501", "Port on which to listen");
+// for certificate crendentials
+DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen");
+
+```
+## MTLS extensions:
++ Client
+  + client.crt
+  + client.key
++ Server
+  + server.crt
+  + server.key
+  + ca.crt
++ gRPC credentials are set up for communication
+
+
 # Bazel Build Process
 
 Install Bazel 0.28.0 -- Only this version works
@@ -132,6 +164,10 @@ git clone https://github.com/google/private-join-and-compute.git
 cd private-join-and-compute
 
 bazel build :all --incompatible_disable_deprecated_attr_params=false --incompatible_depset_is_not_iterable=false --incompatible_new_actions_api=false --incompatible_no_support_tools_in_action_inputs=false
+
+bazel build :all --incompatible_disable_deprecated_attr_params=false --incompatible_depset_is_not_iterable=false --incompatible_new_actions_api=false --incompatible_no_support_tools_in_action_inputs=false
+--cxxopt='-std=c++17'
+
 
 bazel-bin/generate_dummy_data --server_data_file=/tmp/dummy_server_data.csv \
 --client_data_file=/tmp/dummy_client_data.csv

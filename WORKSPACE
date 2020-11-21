@@ -71,3 +71,12 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 grpc_extra_deps()
 
 #google-shell encryption dependencies can be brought in here
+# abseil-cpp
+http_archive(
+    name = "com_google_absl",
+    sha256 = "728a813291bdec2aa46eab8356ace9f75ac2ed9dfe2df5ab603c4e6c09f1c353",
+    strip_prefix = "abseil-cpp-20200225",
+    urls = [
+         "https://github.com/abseil/abseil-cpp/archive/20200225.tar.gz",
+    ],
+)
