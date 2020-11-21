@@ -63,6 +63,8 @@ message OpCode {
   }  
 ```
 
++ Gettting value from enumerator
+  + Ref: https://stackoverflow.com/questions/32161409/how-to-get-protobuf-enum-as-string
 
 
 # Implementation Choices
@@ -140,7 +142,11 @@ DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen"
   + server.key
   + ca.crt
 + gRPC credentials are set up for communication
-
++ For local debug
+  + Set up in /etc/hosts
+  ``` 
+  0.0.0.0    california.sjsu-mtls.com
+  ```
 
 # Bazel Build Process
 

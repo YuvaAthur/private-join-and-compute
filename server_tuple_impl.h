@@ -83,6 +83,10 @@ class PrivateIntersectionSumProtocolServerTupleImpl : public ProtocolServer {
   // contain the encrypted server identifiers.
   std::vector<std::string> inputs_;
   bool protocol_finished_ = false;
+
+  //compute methods
+  int32_t op_1_;
+  int32_t op_2_;
 };
 
 }  // namespace private_join_and_compute

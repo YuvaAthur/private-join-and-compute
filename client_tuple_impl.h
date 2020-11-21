@@ -117,6 +117,7 @@ class PrivateIntersectionSumProtocolClientTupleImpl : public ProtocolClient {
   int32_t op_1_;
   int32_t op_2_;
 
+
   std::unique_ptr<ECCommutativeCipher> ec_cipher_;
   std::unique_ptr<PrivatePaillier> private_paillier_;
 

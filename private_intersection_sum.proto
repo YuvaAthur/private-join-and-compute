@@ -38,8 +38,8 @@ message PrivateIntersectionSumClientMessage {
     optional bytes public_key = 1;
     optional EncryptedSet encrypted_set = 2;
     optional EncryptedSet reencrypted_set = 3;
-    optional OpCode op_code_1 = 4;
-    optional OpCode op_code_2 = 5;
+    optional int32 op_code_1 = 4;
+    optional int32 op_code_2 = 5;
   }
 }
 

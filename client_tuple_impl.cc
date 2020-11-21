@@ -48,6 +48,11 @@ PrivateIntersectionSumProtocolClientTupleImpl::ReEncryptSet(
   result= maybe_result.value();
   *result.mutable_public_key() = pk.ToBytes();
 
+  //set flags
+  result.set_op_code_1(op_1_);
+  result.set_op_code_2(op_2_);
+ 
+
 
   //YAR:Notes : Reencrypt the ID column Server sent
   std::vector<EncryptedElement> reencrypted_set;

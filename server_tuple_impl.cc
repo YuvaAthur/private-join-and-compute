@@ -60,8 +60,14 @@ PrivateIntersectionSumProtocolServerTupleImpl::ComputeIntersection(
         "Called ComputeIntersection before EncryptSet.");
   }
   PrivateIntersectionSumServerMessage::ServerRoundTwo result;
+
   BigNum N = ctx_->CreateBigNum(client_message.public_key());
   PublicPaillier public_paillier(ctx_, N, 2);
+
+  //set the requested operators
+  op_1_ = client_message.op_code_1();
+  op_2_ = client_message.op_code_2();
+
 
   std::vector<EncryptedElement> server_set, client_set, intersection;
 
@@ -156,10 +162,16 @@ PrivateIntersectionSumProtocolServerTupleImpl::IntersectionAggregates(
   BigNum sum_2 = encrypted_zero.value();
   std::vector<BigNum> aggregates;
   for (const EncryptedElement& element : intersection) {
-    sum_1 =
+    if(!op_1_) { // default is sum
+      sum_1 =
         public_paillier.Add(sum_1, ctx_->CreateBigNum(element.associated_data_1()));
-    sum_2 =
+    }
+    if(!op_2_){ // default is sum
+      sum_2 =
         public_paillier.Add(sum_2, ctx_->CreateBigNum(element.associated_data_2()));
+
+    }
+
   }
 
   aggregates.push_back(sum_1);
