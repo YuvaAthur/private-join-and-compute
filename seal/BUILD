@@ -66,6 +66,19 @@ cc_library(
 )
 
 
+#https://docs.nvidia.com/isaac/archive/2019.2/doc/faq.html 
+# cc_library(
+#   name = "zlib",
+#   srcs = glob(["*.c", "*.h"], exclude="zlib.h"),
+#   hdrs = ["zlib.h"],
+# #   copts = [
+# #     "-Wno-shift-negative-value",
+# #     "-Wno-implicit-function-declaration",
+# #   ],
+#   includes = ["."],
+# )
+
+
 #https://stackoverflow.com/questions/52635860/how-can-i-include-an-already-built-static-library-a-file-using-bazel
 #https://docs.bazel.build/versions/master/cpp-use-cases.html
 
@@ -73,13 +86,17 @@ cc_library(
     name ="seal_lib",
     srcs = ["lib/libseal-3.4.a"],
     hdrs = ["seal.h"],
-    deps = [":seal_includes"]
+    deps = [
+        ":seal_includes",
+        "@zlib//:zlib",
+    ]
 )
+
 
 cc_library(
     name = "bfv_example",
     srcs = [
-        # "1_bfv_basics.cpp",
+        "1_bfv_basics.cpp",
         "examples.cpp",
     ],
     hdrs = ["examples.h"],

@@ -162,6 +162,15 @@ PrivateIntersectionSumProtocolServerTupleImpl::IntersectionAggregates(
   BigNum sum_2 = encrypted_zero.value();
   std::vector<BigNum> aggregates;
   for (const EncryptedElement& element : intersection) {
+/*
+    //----- begin: introducing SEAL integration using command line
+    char y='6';
+    std::string a = "./bazel-bin/sealexamples ";
+    a += y;
+    std::cout << "VALUE OF THE STRING IS " << a << std::endl;
+    std::system(a.c_str());
+    //------ end: introducing SEAL integration using command line
+*/
     if(!op_1_) { // default is sum
       sum_1 =
         public_paillier.Add(sum_1, ctx_->CreateBigNum(element.associated_data_1()));

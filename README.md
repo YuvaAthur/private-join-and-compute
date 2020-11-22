@@ -155,6 +155,39 @@ DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen"
   + export GRPC_TRACE=transport_security
   + export GRPC_TRACE=transport_security,handshaker
 
+## Integration SEAL BFV HE
+
+Client
++ Given
+  + Secret Key
++ Value passed
+  + x = 4
++ Value returned 
+  + e = h.e.(secret_key_decrypt(4))
++ Value passed to server
+  + e
++ (seal_client --encrypt=4) = e
+
+Server
++ Given
+  + Public Key
++ Value Received
+  + e
++ Computation Done
+  + e2 = h.e.(public_key_sq(e))
++ Value passed to client
+  + e2
++ (seal_server --evalue=e) = e2
++ Server
+  + sum (e2) 
+
+Client
++ Value received = e2
++ Final value
+  + d = h.e.(secret_key_decrypt(e2)) = x^2
++ (seal_client --decrypt=e2) = x^2
+
+
 # Bazel Build Process
 
 + Setting for C++17 for build

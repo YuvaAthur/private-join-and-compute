@@ -36,9 +36,9 @@ message EncryptedElement {
 //      -  on the homomorphic encryption used
 //      -  applied on ONE Column only
 //  Possible : 
-//      1) sum(col) --> avg(col) = sum(col)/n
+//      1) sum(col) --> mean(col) = sum(col)* (1/n)
 //      2) sum(col^2) 
-//      3) varn(col) = sum([(x-avg(col))^2])
+//      3) varn(col) = sum([(x-mean(col))^2])
 message OpCode {
   enum Operator {
     SUM = 0;

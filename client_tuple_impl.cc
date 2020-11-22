@@ -94,6 +94,17 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
     }
     *element->mutable_element() = encrypted.value();
     //YAR::Note : This is where the business keys are encrypted using homomorphic encryption
+/*
+    //----- begin: introducing SEAL integration using command line
+    char y='6';
+    std::string a = "./bazel-bin/sealexamples ";
+    a += y;
+    std::cout << "VALUE OF THE STRING IS " << a << std::endl;
+    std::system(a.c_str());
+    //------ end: introducing SEAL integration using command line
+*/
+
+
     //col_1
     StatusOr<BigNum> value_1 = private_paillier_->Encrypt(col_1[i]);
     if (!value_1.ok()) {
