@@ -147,8 +147,24 @@ DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen"
   ``` 
   0.0.0.0    california.sjsu-mtls.com
   ```
++ Debugging network process
+  + export GRPC_VERBOSITY=debug 
+  + export GRPC_TRACE=all
+
++ transport_security - traces metadata about secure channel establishment
+  + export GRPC_TRACE=transport_security
+  + export GRPC_TRACE=transport_security,handshaker
 
 # Bazel Build Process
+
++ Setting for C++17 for build
+  + update .bazelrc
+```
+build:c++17 --cxxopt=-std=c++1z
+build:c++17 --cxxopt=-stdlib=libc++
+build:c++1z --cxxopt=-std=c++1z
+build:c++1z --cxxopt=-stdlib=libc++
+```
 
 Install Bazel 0.28.0 -- Only this version works
 

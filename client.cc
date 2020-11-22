@@ -117,6 +117,14 @@ int ExecuteProtocol() {
   std::cout << "Client: Loading data..." << std::endl;
   auto maybe_client_identifiers_and_associated_values =
       ::private_join_and_compute::ReadClientDatasetFromFile(FLAGS_client_data_file, &context);
+  
+  std::cout << "Client: MTLS Switch (0: local, 1: cert) " << std::int32_t(FLAGS_use_mtls) << std::endl;
+  if (int32_t(FLAGS_use_mtls)){
+    std::cout << "Client: Contacting server on " << FLAGS_port1 << std::endl;
+  }else{
+    std::cout << "Client: Contacting server on " << FLAGS_port0 << std::endl;
+  }
+
   if (!maybe_client_identifiers_and_associated_values.ok()) {
     std::cerr << "Client::ExecuteProtocol: failed "
               << maybe_client_identifiers_and_associated_values.status()
