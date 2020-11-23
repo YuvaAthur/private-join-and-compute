@@ -20,6 +20,8 @@
 #include "seal.h"
 
 void example_bfv_basics();
+
+void example_bfv_integ();
 /*
 void example_encoders();
 

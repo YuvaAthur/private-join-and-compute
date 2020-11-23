@@ -80,3 +80,26 @@ http_archive(
          "https://github.com/abseil/abseil-cpp/archive/20200225.tar.gz",
     ],
 )
+
+# microsoft seal integration
+#https://github.com/bazelbuild/rules_go/blob/0.19.0/go/workspace.rst#proto-dependencies
+git_repository(
+    name = "com_google_protobuf",
+    commit = "09745575a923640154bcf307fba8aedff47f240a",
+    remote = "https://github.com/protocolbuffers/protobuf",
+    shallow_since = "1558721209 -0700",
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
+#https://chromium.googlesource.com/external/github.com/google/quic-trace/+/refs/heads/master/WORKSPACE
+
+http_archive(
+    name = "zlib",
+    build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
+    sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
+    strip_prefix = "zlib-1.2.11",
+    urls = ["https://zlib.net/zlib-1.2.11.tar.gz"],
+)

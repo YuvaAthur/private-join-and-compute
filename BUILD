@@ -62,6 +62,8 @@ cc_library(
     ],
 )
 
+# ------------------------ client setup ----------------
+
 # client_impl : Uses Pair Constructor (Original Code) <id, col>
 cc_library(
     name = "client_impl",
@@ -82,6 +84,90 @@ cc_library(
     ],
 )
 
+
+# ---------------------------------------------------
+# integrating microsoft seal library
+# reference BUILD in /seal sub directory
+# ----------------------------------------------------
+
+# package(default_visibility = ["//visibility:public"])
+
+
+# cc_library(
+#     name = "seal_includes",
+#     hdrs = [
+#         "seal.h",
+#         "baseconverter.h",
+#         "batchencoder.h",
+#         "biguint.h",
+#         "blake2-impl.h",
+#         "blake2.h",
+#         "ciphertext.h",
+#         "ckks.h",
+#         "clang.h",
+#         "clipnormal.h",
+#         "common.h",
+#         "config.h",
+#         "context.h",
+#         "croots.h",
+#         "decryptor.h",
+#         "defines.h",
+#         "encryptionparams.h",
+#         "encryptor.h",
+#         "evaluator.h",
+#         "galoiskeys.h",
+#         "gcc.h",
+#         "globals.h",
+#         "hash.h",
+#         "hestdparms.h",
+#         "intarray.h",
+#         "intencoder.h",
+#         "keygenerator.h",
+#         "kswitchkeys.h",
+#         "locks.h",
+#         "memorymanager.h",
+#         "mempool.h",
+#         "modulus.h",
+#         "msvc.h",
+#         "numth.h",
+#         "plaintext.h",
+#         "pointer.h",
+#         "polyarith.h",
+#         "polyarithmod.h",
+#         "polyarithsmallmod.h",
+#         "polycore.h",
+#         "publickey.h",
+#         "randomgen.h",
+#         "randomtostd.h",
+#         "relinkeys.h",
+#         "rlwe.h",
+#         "scalingvariant.h",
+#         "secretkey.h",
+#         "serialization.h",
+#         "smallmodulus.h",
+#         "smallntt.h",
+#         "uintarith.h",
+#         "uintarithmod.h",
+#         "uintarithsmallmod.h",
+#         "uintcore.h",
+#         "valcheck.h",
+#         "ztools.h",
+#     ],
+# )
+
+# cc_library(
+#     name ="seal_lib",
+#     srcs = ["seal/lib/libseal-3.4.a"],
+#     hdrs = ["seal/seal.h"],
+#     deps = [
+#         "//seal:seal_includes",
+#         "@zlib//:zlib",
+#     ]
+# )
+
+
+
+
 # client_tuple_impl : Extends client_impl to use tuple <id, col1, col2>
 cc_library(
     name = "client_tuple_impl",
@@ -97,15 +183,18 @@ cc_library(
         "//crypto:bn_util",
         "//crypto:ec_commutative_cipher",
         "//crypto:paillier",
-        "//crypto:elgamal",
+        # "//crypto:elgamal",
         # "//shell:symmetric_encryption",
         "//util:status",
         "//util:status_includes",
         "@com_google_absl//absl/memory",
+        "//seal:seal_includes",
+        "@zlib//:zlib",
     ],
 )
 
 
+# ---------------------- server setup -----------------------------
 cc_library(
     name = "protocol_server",
     hdrs = ["protocol_server.h"],
@@ -157,6 +246,7 @@ cc_library(
     ],
 )
 
+# ------------------------ data generation setup ----------------
 cc_library(
     name = "data_util",
     srcs = ["data_util.cc"],
@@ -182,6 +272,7 @@ cc_binary(
     ],
 )
 
+# ------------------- gRPC set up ---------------------------
 cc_library(
     name = "private_join_and_compute_rpc_impl",
     srcs = ["private_join_and_compute_rpc_impl.cc"],
@@ -230,5 +321,14 @@ cc_binary(
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/strings",
+        # ":seal_lib",
+        # "@zlib//:zlib",
     ],
+    copts = [
+        # "-Iinclude/",
+        # "-std=c++17",
+        "-Lseal/lib/",
+    ],
+    linkstatic=1,
+
 )

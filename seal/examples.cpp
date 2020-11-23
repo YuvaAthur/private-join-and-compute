@@ -20,11 +20,11 @@ int main()
         cout << "| Examples                   | Source Files               |" << endl;
         cout << "+----------------------------+----------------------------+" << endl;
         cout << "| 1. BFV Basics              | 1_bfv_basics.cpp           |" << endl;
-        cout << "| 2. Encoders                | 2_encoders.cpp             |" << endl;
-        cout << "| 3. Levels                  | 3_levels.cpp               |" << endl;
-        cout << "| 4. CKKS Basics             | 4_ckks_basics.cpp          |" << endl;
-        cout << "| 5. Rotation                | 5_rotation.cpp             |" << endl;
-        cout << "| 6. Performance Test        | 6_performance.cpp          |" << endl;
+        cout << "| 2. Integration check       | 2_bfv_integ.cpp            |" << endl;
+        // cout << "| 3. Levels                  | 3_levels.cpp               |" << endl;
+        // cout << "| 4. CKKS Basics             | 4_ckks_basics.cpp          |" << endl;
+        // cout << "| 5. Rotation                | 5_rotation.cpp             |" << endl;
+        // cout << "| 6. Performance Test        | 6_performance.cpp          |" << endl;
         cout << "+----------------------------+----------------------------+" << endl;
 
         /*
@@ -41,7 +41,7 @@ int main()
         bool invalid = true;
         do
         {
-            cout << endl << "> Run example (1) or exit (0): ";
+            cout << endl << "> Run example (1-2) or exit (0): ";
             if (!(cin >> selection))
             {
                 invalid = false;
@@ -66,6 +66,10 @@ int main()
         {
         case 1:
             example_bfv_basics();
+            break;
+
+        case 2:
+            example_bfv_integ();
             break;
 /*
         case 2:

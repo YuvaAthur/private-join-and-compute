@@ -97,15 +97,16 @@ cc_library(
     name = "bfv_example",
     srcs = [
         "1_bfv_basics.cpp",
+        "2_bfv_integ.cpp",
         "examples.cpp",
     ],
     hdrs = ["examples.h"],
     deps = [
         ":seal_includes",
     ],
-    copts = [
-        "-std=c++17",
-    ],
+    # copts = [
+    #     "-std=c++17",
+    # ],
 )
 
 cc_binary(
@@ -113,6 +114,7 @@ cc_binary(
     srcs = [
         "examples.cpp",
         "1_bfv_basics.cpp",
+        "2_bfv_integ.cpp",
         ],
     deps = [
         ":bfv_example",
@@ -120,7 +122,7 @@ cc_binary(
     ],
     copts = [
         # "-Iinclude/",
-        "-std=c++17",
+        # "-std=c++17",
         "-Llib/",
     ],
     linkstatic=1,

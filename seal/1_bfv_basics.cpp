@@ -212,7 +212,7 @@ void example_bfv_basics()
 
     /*
     In Microsoft SEAL, a valid ciphertext consists of two or more polynomials
-    whose coefficients are integers modulo the product of the primes in the
+    whose coefficients Key are integers modulo the product of the primes in the
     coeff_modulus. The number of polynomials in a ciphertext is called its `size'
     and is given by Ciphertext::size(). A freshly encrypted ciphertext always
     has size 2.

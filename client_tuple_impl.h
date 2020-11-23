@@ -23,6 +23,9 @@
 #include "util/status.inc"
 #include "crypto/ec_commutative_cipher.h"
 
+// Microsoft SEAL Integration 
+#include "seal/seal.h"
+
 
 namespace private_join_and_compute {
 
@@ -120,6 +123,15 @@ class PrivateIntersectionSumProtocolClientTupleImpl : public ProtocolClient {
 
   std::unique_ptr<ECCommutativeCipher> ec_cipher_;
   std::unique_ptr<PrivatePaillier> private_paillier_;
+
+  //YAR: seal integration
+  // getting linker errors on vtable of memory manager
+  //seal::EncryptionParameters parms_;
+  std::shared_ptr<seal::SEALContext> context_;  
+  // seal::KeyGenerator key_generator_;
+  seal::SecretKey secret_key_;
+  seal::PublicKey public_key_; 
+
 
   bool protocol_finished_ = false;
 };
