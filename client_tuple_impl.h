@@ -126,9 +126,9 @@ class PrivateIntersectionSumProtocolClientTupleImpl : public ProtocolClient {
 
   //YAR: seal integration
   // getting linker errors on vtable of memory manager
-  //seal::EncryptionParameters parms_;
+  seal::EncryptionParameters parms_;
   std::shared_ptr<seal::SEALContext> context_;  
-  // seal::KeyGenerator key_generator_;
+  // seal::KeyGenerator key_generator_; no dafault constructor
   seal::SecretKey secret_key_;
   seal::PublicKey public_key_; 
 

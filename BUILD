@@ -189,7 +189,7 @@ cc_library(
         "//util:status_includes",
         "@com_google_absl//absl/memory",
         "//seal:seal_includes",
-        "@zlib//:zlib",
+        "//seal:seal_lib",
     ],
 )
 
@@ -332,3 +332,10 @@ cc_binary(
     linkstatic=1,
 
 )
+
+# ---------------- compile option ---------------------------
+# bazel build :all --incompatible_disable_deprecated_attr_params=false 
+# --incompatible_depset_is_not_iterable=false 
+# --incompatible_new_actions_api=false 
+# --incompatible_no_support_tools_in_action_inputs=false 
+# --cxxopt='-std=c++17' 
