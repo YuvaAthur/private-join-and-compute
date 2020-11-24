@@ -219,7 +219,7 @@ Client: The intersection size is 5 and the intersection-sum is 90
 ```
 ```
 bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1
-
+bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1 : Fails!
 ```
 
 
@@ -269,14 +269,6 @@ bazel-bin/generate_dummy_data \
 --client_data_file=/tmp/dummy_client_data.csv --server_data_size=1000 \
 --client_data_size=1000 --intersection_size=200 --max_associated_value=100
 
-+ For using Microsoft SEAL integration max value < 32
-
-bazel-bin/generate_dummy_data \
---server_data_file=/tmp/dummy_server_data.csv \
---client_data_file=/tmp/dummy_client_data.csv --server_data_size=10 \
---client_data_size=10 --intersection_size=5 --max_associated_value=31
-
-
 Start the server
 ---------------------
 bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv
@@ -285,6 +277,21 @@ bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv
 From Client Session
 ----------------------
 bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv
+
+
+Testing MS SEAL Integration
+---------------------------
+
+bazel-bin/generate_dummy_data \
+--server_data_file=/tmp/dummy_server_data.csv \
+--client_data_file=/tmp/dummy_client_data.csv --server_data_size=10 \
+--client_data_size=10 --intersection_size=1 --max_associated_value=31
+
+bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1 --use_seal=1
+
+bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1 --use_seal=1
+
+
 
 Log of Bazel build
 -------------------

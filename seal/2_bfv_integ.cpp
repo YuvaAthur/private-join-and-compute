@@ -92,6 +92,10 @@ void example_bfv_integ()
 
   //finding square of loaded ciphertext yx_encrypted
   evaluator.square(yx_encrypted, yx_squared);
+
+  // Ciphertext assign;
+  // assign = yx_squared;
+
   decryptor.decrypt(yx_squared, yx_sq_decrypted);
   
   //hex string to int
