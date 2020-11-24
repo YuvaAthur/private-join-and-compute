@@ -38,7 +38,8 @@ class PrivateIntersectionSumProtocolClientTupleImpl : public ProtocolClient {
   //Constructor using tuple instead of pair
   PrivateIntersectionSumProtocolClientTupleImpl(
       Context* ctx, const std::tuple<std::vector<std::string>, 
-      std::vector<BigNum>, std::vector<BigNum>>& table, int32_t modulus_size,const int32_t op_1,const int32_t op_2);
+      std::vector<BigNum>, std::vector<BigNum>>& table, int32_t modulus_size,
+      const int32_t op_1,const int32_t op_2, const int32_t use_seal);
 
 
   // Generates the StartProtocol message and sends it on the message sink.
@@ -80,6 +81,12 @@ class PrivateIntersectionSumProtocolClientTupleImpl : public ProtocolClient {
 
  
  protected:
+  // YAR: Microsoft SEAL integration 
+  // Set up member variables 
+  // Context parms is a constant between client & server
+  Status setupSEAL();
+
+
   // The server sends the first message of the protocol, which contains its
   // encrypted set.  This party then re-encrypts that set and replies with the
   // reencrypted values and its own encrypted set.
@@ -119,6 +126,7 @@ class PrivateIntersectionSumProtocolClientTupleImpl : public ProtocolClient {
   //command line extension
   int32_t op_1_;
   int32_t op_2_;
+  int32_t use_seal_;
 
 
   std::unique_ptr<ECCommutativeCipher> ec_cipher_;
@@ -132,6 +140,7 @@ class PrivateIntersectionSumProtocolClientTupleImpl : public ProtocolClient {
   seal::SecretKey secret_key_;
   seal::PublicKey public_key_; 
 
+  seal::Plaintext decrypt_sum_1_,decrypt_sum_2_;
 
   bool protocol_finished_ = false;
 };

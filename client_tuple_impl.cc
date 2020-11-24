@@ -17,7 +17,8 @@ namespace private_join_and_compute {
 PrivateIntersectionSumProtocolClientTupleImpl::
     PrivateIntersectionSumProtocolClientTupleImpl(
       Context* ctx, const std::tuple<std::vector<std::string>, 
-      std::vector<BigNum>, std::vector<BigNum>>& table, int32_t modulus_size,const int32_t op_1,const int32_t op_2)
+      std::vector<BigNum>, std::vector<BigNum>>& table, int32_t modulus_size,
+      const int32_t op_1,const int32_t op_2,const int32_t use_seal)
     :ctx_(ctx),
       table_(table),
       p_(ctx_->GenerateSafePrime(modulus_size / 2)),
@@ -26,10 +27,25 @@ PrivateIntersectionSumProtocolClientTupleImpl::
       intersection_agg_2_(ctx->Zero()),
       op_1_(op_1),
       op_2_(op_2),
+      use_seal_(use_seal),
       ec_cipher_(std::move(
           ECCommutativeCipher::CreateWithNewKey(
               NID_X9_62_prime256v1, ECCommutativeCipher::HashType::SHA256)
               .value())){}
+
+Status PrivateIntersectionSumProtocolClientTupleImpl::setupSEAL(){
+  // parms
+  seal::EncryptionParameters parms(seal::scheme_type::BFV);
+  size_t poly_modulus_degree = 4096;
+  parms.set_poly_modulus_degree(poly_modulus_degree);
+  parms.set_coeff_modulus(seal::CoeffModulus::BFVDefault(poly_modulus_degree));
+  parms.set_plain_modulus(1024);
+
+  // set_context (same as client)
+  context_ = seal::SEALContext::Create(parms);
+
+  return Status();
+}
 
 StatusOr<PrivateIntersectionSumClientMessage::ClientRoundOne>
 PrivateIntersectionSumProtocolClientTupleImpl::ReEncryptSet(
@@ -86,6 +102,11 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
   auto col_1 = std::get<1>(table_);
   auto col_2 = std::get<2>(table_);
 
+  //SEAL encryption_tools
+  seal::Encryptor encryptor(context_, public_key_);
+  seal::Plaintext plain_text;
+  seal::Ciphertext cipher_text;
+
   for (size_t i = 0; i < ids.size(); i++) {
     EncryptedElement* element = result.mutable_encrypted_set()->add_elements();
     StatusOr<std::string> encrypted = ec_cipher_->Encrypt(ids[i]);
@@ -93,31 +114,46 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
       return encrypted.status();
     }
     *element->mutable_element() = encrypted.value();
-    //YAR::Note : This is where the business keys are encrypted using homomorphic encryption
-/*
-    //----- begin: introducing SEAL integration using command line
-    char y='6';
-    std::string a = "./bazel-bin/sealexamples ";
-    a += y;
-    std::cout << "VALUE OF THE STRING IS " << a << std::endl;
-    std::system(a.c_str());
-    //------ end: introducing SEAL integration using command line
-*/
 
 
-    //col_1
-    StatusOr<BigNum> value_1 = private_paillier_->Encrypt(col_1[i]);
-    if (!value_1.ok()) {
-      return value_1.status();
+
+
+    if(!use_seal_){//default to Pallier
+      //col_1
+      StatusOr<BigNum> value_1 = private_paillier_->Encrypt(col_1[i]);
+      if (!value_1.ok()) {
+        return value_1.status();
+      }
+      *element->mutable_associated_data_1() = value_1.value().ToBytes();
+
+      //col_2
+      StatusOr<BigNum> value_2 = private_paillier_->Encrypt(col_2[i]);
+      if (!value_2.ok()) {
+        return value_2.status();
+      }
+      *element->mutable_associated_data_2() = value_2.value().ToBytes();
+
+    } else { //use SEAL
+      std::stringstream hex_string;
+      std::stringstream send_string;
+
+      { // col 1
+        hex_string << std::hex << col_1[i].ToIntValue().value();
+        plain_text = hex_string.str();
+        encryptor.encrypt(plain_text,cipher_text);
+        cipher_text.save(send_string);
+        *element->mutable_associated_data_1() = send_string.str();
+      }
+      { // col 2
+        hex_string << std::hex << col_2[i].ToIntValue().value();
+        plain_text = hex_string.str();
+        encryptor.encrypt(plain_text,cipher_text);
+        cipher_text.save(send_string);
+        *element->mutable_associated_data_2() = send_string.str();
+      }
+
     }
-    *element->mutable_associated_data_1() = value_1.value().ToBytes();
 
-    //col_2
-    StatusOr<BigNum> value_2 = private_paillier_->Encrypt(col_2[i]);
-    if (!value_2.ok()) {
-      return value_2.status();
-    }
-    *element->mutable_associated_data_2() = value_2.value().ToBytes();
   }
   return result;
 }
@@ -132,19 +168,31 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::DecryptResult(
 
   intersection_size_ = server_message.intersection_size();     
 
-  StatusOr<BigNum> agg_1 = private_paillier_->Decrypt(
-      ctx_->CreateBigNum(server_message.encrypted_sum_1()));
-  if (!agg_1.ok()) {
-    return agg_1.status();
-  } 
-  intersection_agg_1_ = agg_1.value();
+  if(!use_seal_){
+    StatusOr<BigNum> agg_1 = private_paillier_->Decrypt(
+        ctx_->CreateBigNum(server_message.encrypted_sum_1()));
+    if (!agg_1.ok()) {
+      return agg_1.status();
+    } 
+    intersection_agg_1_ = agg_1.value();
 
-  StatusOr<BigNum> agg_2 = private_paillier_->Decrypt(
-      ctx_->CreateBigNum(server_message.encrypted_sum_2()));
-  if (!agg_2.ok()) {
-    return agg_2.status();
+    StatusOr<BigNum> agg_2 = private_paillier_->Decrypt(
+        ctx_->CreateBigNum(server_message.encrypted_sum_2()));
+    if (!agg_2.ok()) {
+      return agg_2.status();
+    }
+    intersection_agg_2_ = agg_2.value();   
+  } else { // seal computational result
+    seal::Decryptor decryptor(context_, secret_key_); 
+    std::stringstream hex_string_1(server_message.encrypted_sum_1());
+    std::stringstream hex_string_2(server_message.encrypted_sum_2());
+    seal::Ciphertext sum_1,sum_2;
+
+    sum_1.load(context_,hex_string_1);
+    sum_2.load(context_,hex_string_2);
+    decryptor.decrypt(sum_1,decrypt_sum_1_);
+    decryptor.decrypt(sum_2,decrypt_sum_2_);
   }
-  intersection_agg_2_ = agg_2.value();   
 
   return OkStatus();
 }
@@ -228,18 +276,47 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::PrintOutput() {
     return maybe_converted_intersection_agg_2.status();
   }
 
+ 
+  if(!use_seal_){
+    std::cout << "Client: The intersection size is " << intersection_size_
+              << " and the intersection-agg-1 is "
+              << maybe_converted_intersection_agg_1.value() 
+              << " and the intersection-agg-2 is "
+              << maybe_converted_intersection_agg_2.value() 
+              << std::endl;
+  } else {
+    std::stringstream s1, s2;
+    int x1,x2;
 
+    s1 << std::hex << decrypt_sum_1_.to_string();
+    s1 >> x1;
+    s2 << std::hex << decrypt_sum_2_.to_string();
+    s2 >> x2;
+    std::cout << "Client: The intersection size is " << intersection_size_
+              << " and the intersection-agg-1 is "
+              << x1 
+              << " and the intersection-agg-2 is "
+              << x2 
+              << std::endl;
 
-  std::cout << "Client: The intersection size is " << intersection_size_
-            << " and the intersection-agg-1 is "
-            << maybe_converted_intersection_agg_1.value() 
-            << " and the intersection-agg-2 is "
-            << maybe_converted_intersection_agg_2.value() 
-            << std::endl;
+  }
   return OkStatus();
 }
 
 }  // namespace private_join_and_compute
+
+/*******************************************************************/
+  //YAR::Note : This is where the business keys are encrypted using homomorphic encryption
+/*
+  //----- begin: introducing SEAL integration using command line
+  char y='6';
+  std::string a = "./bazel-bin/sealexamples ";
+  a += y;
+  std::cout << "VALUE OF THE STRING IS " << a << std::endl;
+  std::system(a.c_str());
+  //------ end: introducing SEAL integration using command line
+*/
+
 
 
 /*******************************************************************/

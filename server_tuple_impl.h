@@ -23,6 +23,9 @@
 #include "util/status.inc"
 #include "crypto/ec_commutative_cipher.h"
 
+// Microsoft SEAL Integration 
+#include "seal/seal.h"
+
 namespace private_join_and_compute {
 
 // The "server side" of the intersection-sum protocol.  This represents the
@@ -32,8 +35,8 @@ namespace private_join_and_compute {
 class PrivateIntersectionSumProtocolServerTupleImpl : public ProtocolServer {
  public:
   PrivateIntersectionSumProtocolServerTupleImpl(::private_join_and_compute::Context* ctx,
-                                           std::vector<std::string> inputs)
-      : ctx_(ctx), inputs_(std::move(inputs)) {}
+                                           std::vector<std::string> inputs,const int32_t use_seal)
+      : ctx_(ctx), inputs_(std::move(inputs)),use_seal_(use_seal) {}
 
   ~PrivateIntersectionSumProtocolServerTupleImpl() override = default;
 
@@ -59,6 +62,11 @@ class PrivateIntersectionSumProtocolServerTupleImpl : public ProtocolServer {
   ECCommutativeCipher* GetECCipher() { return ec_cipher_.get(); }
 
  protected:
+  // YAR: Microsoft SEAL integration 
+  // Set up member variables 
+  // Context parms is a constant between client & server
+  Status setupSEAL();
+
   // Encrypts the server's identifiers.
   StatusOr<PrivateIntersectionSumServerMessage::ServerRoundOne> EncryptSet();
 
@@ -87,6 +95,16 @@ class PrivateIntersectionSumProtocolServerTupleImpl : public ProtocolServer {
   //compute methods
   int32_t op_1_;
   int32_t op_2_;
+
+  //seal encryption
+  int32_t use_seal_;
+
+  seal::EncryptionParameters parms_;
+  std::shared_ptr<seal::SEALContext> context_;  
+
+  seal::Ciphertext seal_sum_1_;
+  seal::Ciphertext seal_sum_2_;
+
 };
 
 }  // namespace private_join_and_compute

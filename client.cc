@@ -78,6 +78,8 @@ DEFINE_int32(operator_2,0,"Operator Two");
     // SUMSQ = 1;
     // VARN = 2;
 
+//integrating Microsoft SEAL FHE
+DEFINE_int32(use_seal,0,"Defines whether SEAL is to be used");
 
 namespace private_join_and_compute {
 namespace {
@@ -148,7 +150,8 @@ int ExecuteProtocol() {
     client =
         absl::make_unique<::private_join_and_compute::PrivateIntersectionSumProtocolClientTupleImpl>(
             &context, std::move(client_identifiers_and_associated_values),
-            FLAGS_paillier_modulus_size,FLAGS_operator_1,FLAGS_operator_2);
+            FLAGS_paillier_modulus_size,
+            FLAGS_operator_1,FLAGS_operator_2,FLAGS_use_seal);
   }else{
     //existing pair implementation
     client =

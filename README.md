@@ -187,6 +187,41 @@ Client
   + d = h.e.(secret_key_decrypt(e2)) = x^2
 + (seal_client --decrypt=e2) = x^2
 
+# Testing SEAL
+```
+bazel-bin/generate_dummy_data --server_data_file=/tmp/dummy_server_data.csv --client_data_file=/tmp/dummy_client_data.csv --server_data_size=10 --client_data_size=10 --intersection_size=5 --max_associated_value=31
+
+Aggregated values computed using vector algo: sum = 90, sum of squares = 1874, mean = 18, variance numerator = 254
+Aggregated values computed using vector algo: sum = 94, sum of squares = 1918, mean = 18.8, variance numerator = 257.2
+Generated Server dataset of size 10, Client dataset of size 10
+Passed flags passed aggregators: Operator 1 = 0, Operator 2 = 0
+Intersection size = 5
+Intersection aggregate 1 = 90
+Intersection aggregate 2 = 94
+```
+
+```
+bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv
+Client: Loading data...
+Client: MTLS Switch (0: local, 1: cert) 0
+Client: Contacting server on 0.0.0.0:10501
+Client: Generating keys...
+Client: Starting the protocol.
+Client: MTLS Switch (0: local, 1: cert) 0
+Client: Waiting for response and encrypted set from the server...
+Client: Received encrypted set from the server, double encrypting...
+Client: Sending double encrypted server data and single-encrypted client data to the server.
+Client: Waiting for encrypted intersection sum...
+Client: Sending double encrypted server data and single-encrypted client data to the server.
+Client: Waiting for encrypted intersection sum...
+Client: Received response from the server. Decrypting the intersection-sum.
+Client: The intersection size is 5 and the intersection-sum is 90
+```
+```
+bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1
+
+```
+
 
 # Bazel Build Process
 
@@ -234,6 +269,14 @@ bazel-bin/generate_dummy_data \
 --client_data_file=/tmp/dummy_client_data.csv --server_data_size=1000 \
 --client_data_size=1000 --intersection_size=200 --max_associated_value=100
 
++ For using Microsoft SEAL integration max value < 32
+
+bazel-bin/generate_dummy_data \
+--server_data_file=/tmp/dummy_server_data.csv \
+--client_data_file=/tmp/dummy_client_data.csv --server_data_size=10 \
+--client_data_size=10 --intersection_size=5 --max_associated_value=31
+
+
 Start the server
 ---------------------
 bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv
@@ -242,6 +285,10 @@ bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv
 From Client Session
 ----------------------
 bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv
+
+Log of Bazel build
+-------------------
+bazel build :all >& /tmp/bazel_build.log
 
 ## Bazel build errors & fixes
 + On 2020.04 Ubuntu upgrade I see the following error:

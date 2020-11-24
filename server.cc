@@ -60,6 +60,9 @@ DEFINE_string(server_data_file, "",
 //--mult_column : binary : 0 means 1 column (default), 1 means 2 columns
 DEFINE_int32(multi_column,0,"Indicates 1 or 2 columns in the Client Data Set");
 
+//integrating Microsoft SEAL FHE
+DEFINE_int32(use_seal,0,"Defines whether SEAL is to be used");
+
 
 int RunServer() {
   std::cout << "Server: loading data... " << std::endl;
@@ -80,7 +83,7 @@ int RunServer() {
   // 2 columns tuple implementation
   server =
       absl::make_unique<::private_join_and_compute::PrivateIntersectionSumProtocolServerTupleImpl>(
-          &context, std::move(maybe_server_identifiers.value())); 
+          &context, std::move(maybe_server_identifiers.value()),FLAGS_use_seal); 
   } else {
   //existing pair implementation
   server =

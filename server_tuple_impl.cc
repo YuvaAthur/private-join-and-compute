@@ -52,6 +52,20 @@ PrivateIntersectionSumProtocolServerTupleImpl::EncryptSet() {
   return result;
 }
 
+Status PrivateIntersectionSumProtocolServerTupleImpl::setupSEAL(){
+  // parms
+  seal::EncryptionParameters parms(seal::scheme_type::BFV);
+  size_t poly_modulus_degree = 4096;
+  parms.set_poly_modulus_degree(poly_modulus_degree);
+  parms.set_coeff_modulus(seal::CoeffModulus::BFVDefault(poly_modulus_degree));
+  parms.set_plain_modulus(1024);
+
+  // key_generator
+  context_ = seal::SEALContext::Create(parms);
+
+  return Status();
+}
+
 StatusOr<PrivateIntersectionSumServerMessage::ServerRoundTwo>
 PrivateIntersectionSumProtocolServerTupleImpl::ComputeIntersection(
     const PrivateIntersectionSumClientMessage::ClientRoundOne& client_message) {
@@ -111,11 +125,19 @@ PrivateIntersectionSumProtocolServerTupleImpl::ComputeIntersection(
   }
 
   auto aggregates = std::move(maybe_aggregates.value());
-  BigNum sum_1 = aggregates[0]; 
-  BigNum sum_2 = aggregates[1]; 
+  if(!use_seal_){
+    BigNum sum_1 = aggregates[0]; 
+    BigNum sum_2 = aggregates[1]; 
 
-  *result.mutable_encrypted_sum_1() = sum_1.ToBytes();
-  *result.mutable_encrypted_sum_2() = sum_2.ToBytes();
+    *result.mutable_encrypted_sum_1() = sum_1.ToBytes();
+    *result.mutable_encrypted_sum_2() = sum_2.ToBytes();
+  } else {
+    std::stringstream hex_string;
+    seal_sum_1_.save(hex_string); 
+    *result.mutable_encrypted_sum_1() = hex_string.str();
+    seal_sum_2_.save(hex_string);
+    *result.mutable_encrypted_sum_2() = hex_string.str();
+  }
 
   std::cout << " Returning intersection size as " << intersection.size() << std::endl; 
 
@@ -160,31 +182,60 @@ PrivateIntersectionSumProtocolServerTupleImpl::IntersectionAggregates(
   //reverting to simple list of 2 sums
   BigNum sum_1 = encrypted_zero.value();
   BigNum sum_2 = encrypted_zero.value();
+
+  //Setting up SEAL Aggregation
+  seal::Evaluator evaluator(context_);  
+
+  seal::Ciphertext seal_sum_1;
+  seal::Ciphertext seal_sum_2;
+
+  seal::Ciphertext seal_data_1;
+  seal::Ciphertext seal_data_2;
+
   std::vector<BigNum> aggregates;
   for (const EncryptedElement& element : intersection) {
-/*
-    //----- begin: introducing SEAL integration using command line
-    char y='6';
-    std::string a = "./bazel-bin/sealexamples ";
-    a += y;
-    std::cout << "VALUE OF THE STRING IS " << a << std::endl;
-    std::system(a.c_str());
-    //------ end: introducing SEAL integration using command line
-*/
     if(!op_1_) { // default is sum
-      sum_1 =
-        public_paillier.Add(sum_1, ctx_->CreateBigNum(element.associated_data_1()));
+      if(!use_seal_){
+        sum_1 =
+          public_paillier.Add(sum_1, ctx_->CreateBigNum(element.associated_data_1()));
+      } else {
+        std::stringstream hex_string(element.associated_data_1());
+        seal_data_1.load(context_,hex_string);
+        evaluator.add_inplace(seal_sum_1,seal_data_1);
+      }
+    } else { // sum of squares
+      if(use_seal_){
+        std::stringstream hex_string(element.associated_data_1());
+        seal_data_1.load(context_,hex_string);
+        evaluator.square_inplace(seal_data_1);
+        evaluator.add_inplace(seal_sum_1,seal_data_1);
+      }
     }
     if(!op_2_){ // default is sum
-      sum_2 =
-        public_paillier.Add(sum_2, ctx_->CreateBigNum(element.associated_data_2()));
-
+      if(!use_seal_){
+        sum_2 =
+          public_paillier.Add(sum_2, ctx_->CreateBigNum(element.associated_data_2()));
+      } else {
+        std::stringstream hex_string(element.associated_data_2());
+        seal_data_2.load(context_,hex_string);
+        evaluator.add_inplace(seal_sum_2,seal_data_2);
+      }
+    } else { // sum of squares
+      if(use_seal_){
+        std::stringstream hex_string(element.associated_data_2());
+        seal_data_2.load(context_,hex_string);
+        evaluator.square_inplace(seal_data_2);
+        evaluator.add_inplace(seal_sum_2,seal_data_2);
+      }
     }
-
   }
 
   aggregates.push_back(sum_1);
   aggregates.push_back(sum_2);
+
+  seal_sum_1_=seal_sum_1;
+  seal_sum_2_=seal_sum_2;
+
 
   return aggregates;
 }
@@ -246,6 +297,17 @@ Status PrivateIntersectionSumProtocolServerTupleImpl::Handle(
 }
 
 }  // namespace private_join_and_compute
+
+/*********************************************************************************************/
+/*
+    //----- begin: introducing SEAL integration using command line
+    char y='6';
+    std::string a = "./bazel-bin/sealexamples ";
+    a += y;
+    std::cout << "VALUE OF THE STRING IS " << a << std::endl;
+    std::system(a.c_str());
+    //------ end: introducing SEAL integration using command line
+*/
 
 
 /*********************************************************************************************/

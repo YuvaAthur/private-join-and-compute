@@ -243,6 +243,8 @@ cc_library(
         "//util:status",
         "//util:status_includes",
         "@com_google_absl//absl/memory",
+        "//seal:seal_includes",
+        "//seal:seal_lib",
     ],
 )
 
@@ -303,6 +305,12 @@ cc_binary(
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/memory",
     ],
+    copts = [
+        # "-Iinclude/",
+        # "-std=c++17",
+        "-Lseal/lib/",
+    ],
+    linkstatic=1,
 )
 
 cc_binary(
