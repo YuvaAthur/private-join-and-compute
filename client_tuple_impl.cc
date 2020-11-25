@@ -138,22 +138,36 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
       *element->mutable_associated_data_2() = value_2.value().ToBytes();
 
     } else { //use SEAL
-      std::stringstream hex_string;
-      std::stringstream send_string;
 
       { // col 1
+        std::stringstream hex_string(std::ios::in | std::ios::out | std::ios::binary);
+        std::stringstream send_string(std::ios::in | std::ios::out | std::ios::binary);
+        std::cout <<"Client: SEAL Encrypt Col 1: Begin" << std::endl;
+        int x = 1; //debug
         hex_string << std::hex << col_1[i].ToIntValue().value();
         plain_text = hex_string.str();
+        std::cout <<"Client: SEAL Encrypt Col 1: value 0x" << plain_text.to_string() << std::endl;
         encryptor.encrypt(plain_text,cipher_text);
         cipher_text.save(send_string);
         *element->mutable_associated_data_1() = send_string.str();
+        hex_string.str("");
+        send_string.str("");
+        std::cout <<"Client: SEAL Encrypt Col 1: End" << std::endl;
       }
       { // col 2
+        std::stringstream hex_string(std::ios::in | std::ios::out | std::ios::binary);
+        std::stringstream send_string(std::ios::in | std::ios::out | std::ios::binary);
+        std::cout <<"Client: SEAL Encrypt Col 2: Begin" << std::endl;        
+        int x = 2; //debug
         hex_string << std::hex << col_2[i].ToIntValue().value();
         plain_text = hex_string.str();
+        std::cout <<"Client: SEAL Encrypt Col 2: value 0x" << plain_text.to_string() << std::endl;
         encryptor.encrypt(plain_text,cipher_text);
         cipher_text.save(send_string);
         *element->mutable_associated_data_2() = send_string.str();
+        hex_string.str("");
+        send_string.str("");
+        std::cout <<"Client: SEAL Encrypt Col 2: End" << std::endl;        
       }
 
     }
@@ -196,6 +210,8 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::DecryptResult(
     sum_2.load(context_,hex_string_2);
     decryptor.decrypt(sum_1,decrypt_sum_1_);
     decryptor.decrypt(sum_2,decrypt_sum_2_);
+    std::cout << "Client: Decrypted sum_1 is 0x" << decrypt_sum_1_.to_string() 
+      <<" sum_2 is 0x" << decrypt_sum_2_.to_string() << std::endl; 
   }
 
   return OkStatus();
