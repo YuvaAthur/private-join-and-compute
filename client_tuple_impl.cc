@@ -32,7 +32,7 @@ PrivateIntersectionSumProtocolClientTupleImpl::
           ECCommutativeCipher::CreateWithNewKey(
               NID_X9_62_prime256v1, ECCommutativeCipher::HashType::SHA256)
               .value())){
-                // if(use_seal_) setupSEAL();
+                setupSEAL();
               }
 
 Status PrivateIntersectionSumProtocolClientTupleImpl::setupSEAL(){
@@ -109,10 +109,10 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
   auto col_1 = std::get<1>(table_);
   auto col_2 = std::get<2>(table_);
 
-  // //SEAL encryption_tools
-  // seal::Encryptor encryptor(context_, public_key_);
-  // seal::Plaintext plain_text;
-  // seal::Ciphertext cipher_text;
+  //SEAL encryption_tools
+  seal::Plaintext plain_text;
+  seal::Ciphertext cipher_text;
+  seal::Encryptor encryptor(context_, public_key_);
 
   for (size_t i = 0; i < ids.size(); i++) {
     EncryptedElement* element = result.mutable_encrypted_set()->add_elements();
@@ -138,23 +138,23 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
       *element->mutable_associated_data_2() = value_2.value().ToBytes();
 
     } else { //use SEAL
-      // std::stringstream hex_string;
-      // std::stringstream send_string;
+      std::stringstream hex_string;
+      std::stringstream send_string;
 
-      // { // col 1
-      //   hex_string << std::hex << col_1[i].ToIntValue().value();
-      //   plain_text = hex_string.str();
-      //   encryptor.encrypt(plain_text,cipher_text);
-      //   cipher_text.save(send_string);
-      //   *element->mutable_associated_data_1() = send_string.str();
-      // }
-      // { // col 2
-      //   hex_string << std::hex << col_2[i].ToIntValue().value();
-      //   plain_text = hex_string.str();
-      //   encryptor.encrypt(plain_text,cipher_text);
-      //   cipher_text.save(send_string);
-      //   *element->mutable_associated_data_2() = send_string.str();
-      // }
+      { // col 1
+        hex_string << std::hex << col_1[i].ToIntValue().value();
+        plain_text = hex_string.str();
+        encryptor.encrypt(plain_text,cipher_text);
+        cipher_text.save(send_string);
+        *element->mutable_associated_data_1() = send_string.str();
+      }
+      { // col 2
+        hex_string << std::hex << col_2[i].ToIntValue().value();
+        plain_text = hex_string.str();
+        encryptor.encrypt(plain_text,cipher_text);
+        cipher_text.save(send_string);
+        *element->mutable_associated_data_2() = send_string.str();
+      }
 
     }
 
@@ -172,7 +172,7 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::DecryptResult(
 
   intersection_size_ = server_message.intersection_size();     
 
-  // if(!use_seal_){
+  if(!use_seal_){
     StatusOr<BigNum> agg_1 = private_paillier_->Decrypt(
         ctx_->CreateBigNum(server_message.encrypted_sum_1()));
     if (!agg_1.ok()) {
@@ -186,17 +186,17 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::DecryptResult(
       return agg_2.status();
     }
     intersection_agg_2_ = agg_2.value();   
-  // } else { // seal computational result
-  //   seal::Decryptor decryptor(context_, secret_key_); 
-  //   std::stringstream hex_string_1(server_message.encrypted_sum_1());
-  //   std::stringstream hex_string_2(server_message.encrypted_sum_2());
-  //   seal::Ciphertext sum_1,sum_2;
+  } else { // seal computational result
+    seal::Decryptor decryptor(context_, secret_key_); 
+    std::stringstream hex_string_1(server_message.encrypted_sum_1());
+    std::stringstream hex_string_2(server_message.encrypted_sum_2());
+    seal::Ciphertext sum_1,sum_2;
 
-  //   sum_1.load(context_,hex_string_1);
-  //   sum_2.load(context_,hex_string_2);
-  //   decryptor.decrypt(sum_1,decrypt_sum_1_);
-  //   decryptor.decrypt(sum_2,decrypt_sum_2_);
-  // }
+    sum_1.load(context_,hex_string_1);
+    sum_2.load(context_,hex_string_2);
+    decryptor.decrypt(sum_1,decrypt_sum_1_);
+    decryptor.decrypt(sum_2,decrypt_sum_2_);
+  }
 
   return OkStatus();
 }
@@ -281,29 +281,29 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::PrintOutput() {
   }
 
  
-  // if(!use_seal_){
+  if(!use_seal_){
     std::cout << "Client: The intersection size is " << intersection_size_
               << " and the intersection-agg-1 is "
               << maybe_converted_intersection_agg_1.value() 
               << " and the intersection-agg-2 is "
               << maybe_converted_intersection_agg_2.value() 
               << std::endl;
-  // } else {
-  //   std::stringstream s1, s2;
-  //   int x1,x2;
+  } else {
+    std::stringstream s1, s2;
+    int x1,x2;
 
-  //   s1 << std::hex << decrypt_sum_1_.to_string();
-  //   s1 >> x1;
-  //   s2 << std::hex << decrypt_sum_2_.to_string();
-  //   s2 >> x2;
-  //   std::cout << "Client: The intersection size is " << intersection_size_
-  //             << " and the intersection-agg-1 is "
-  //             << x1 
-  //             << " and the intersection-agg-2 is "
-  //             << x2 
-  //             << std::endl;
+    s1 << std::hex << decrypt_sum_1_.to_string();
+    s1 >> x1;
+    s2 << std::hex << decrypt_sum_2_.to_string();
+    s2 >> x2;
+    std::cout << "Client: The intersection size is " << intersection_size_
+              << " and the intersection-agg-1 is "
+              << x1 
+              << " and the intersection-agg-2 is "
+              << x2 
+              << std::endl;
 
-  // }
+  }
   return OkStatus();
 }
 
