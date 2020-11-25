@@ -136,11 +136,11 @@ PrivateIntersectionSumProtocolServerTupleImpl::ComputeIntersection(
     *result.mutable_encrypted_sum_1() = sum_1.ToBytes();
     *result.mutable_encrypted_sum_2() = sum_2.ToBytes();
   } else {
-    std::stringstream hex_string;
-    seal_sum_1_.save(hex_string); 
-    *result.mutable_encrypted_sum_1() = hex_string.str();
-    seal_sum_2_.save(hex_string);
-    *result.mutable_encrypted_sum_2() = hex_string.str();
+    // std::stringstream hex_string;
+    // seal_sum_1_.save(hex_string); 
+    // *result.mutable_encrypted_sum_1() = hex_string.str();
+    // seal_sum_2_.save(hex_string);
+    // *result.mutable_encrypted_sum_2() = hex_string.str();
   }
 
   result.set_intersection_size(intersection.size());
@@ -185,14 +185,14 @@ PrivateIntersectionSumProtocolServerTupleImpl::IntersectionAggregates(
   BigNum sum_1 = encrypted_zero.value();
   BigNum sum_2 = encrypted_zero.value();
 
-  //Setting up SEAL Aggregation
-  seal::Evaluator evaluator(context_);  
+  // //Setting up SEAL Aggregation
+  // seal::Evaluator evaluator(context_);  
 
-  seal::Ciphertext seal_sum_1;
-  seal::Ciphertext seal_sum_2;
+  // seal::Ciphertext seal_sum_1;
+  // seal::Ciphertext seal_sum_2;
 
-  seal::Ciphertext seal_data_1;
-  seal::Ciphertext seal_data_2;
+  // seal::Ciphertext seal_data_1;
+  // seal::Ciphertext seal_data_2;
 
   std::vector<BigNum> aggregates;
   for (const EncryptedElement& element : intersection) {
@@ -201,9 +201,9 @@ PrivateIntersectionSumProtocolServerTupleImpl::IntersectionAggregates(
         sum_1 =
           public_paillier.Add(sum_1, ctx_->CreateBigNum(element.associated_data_1()));
       } else {
-        std::stringstream hex_string(element.associated_data_1());
-        seal_data_1.load(context_,hex_string);
-        evaluator.add_inplace(seal_sum_1,seal_data_1);
+        // std::stringstream hex_string(element.associated_data_1());
+        // seal_data_1.load(context_,hex_string);
+        // evaluator.add_inplace(seal_sum_1,seal_data_1);
       }
     } else { // sum of squares
       // if(use_seal_){
@@ -218,9 +218,9 @@ PrivateIntersectionSumProtocolServerTupleImpl::IntersectionAggregates(
         sum_2 =
           public_paillier.Add(sum_2, ctx_->CreateBigNum(element.associated_data_2()));
       } else {
-        std::stringstream hex_string(element.associated_data_2());
-        seal_data_2.load(context_,hex_string);
-        evaluator.add_inplace(seal_sum_2,seal_data_2);
+        // std::stringstream hex_string(element.associated_data_2());
+        // seal_data_2.load(context_,hex_string);
+        // evaluator.add_inplace(seal_sum_2,seal_data_2);
       }
     } else { // sum of squares
       // if(use_seal_){

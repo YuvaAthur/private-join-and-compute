@@ -32,7 +32,7 @@ PrivateIntersectionSumProtocolClientTupleImpl::
           ECCommutativeCipher::CreateWithNewKey(
               NID_X9_62_prime256v1, ECCommutativeCipher::HashType::SHA256)
               .value())){
-                if(use_seal_) setupSEAL();
+                // if(use_seal_) setupSEAL();
               }
 
 Status PrivateIntersectionSumProtocolClientTupleImpl::setupSEAL(){
@@ -109,10 +109,10 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
   auto col_1 = std::get<1>(table_);
   auto col_2 = std::get<2>(table_);
 
-  //SEAL encryption_tools
-  seal::Encryptor encryptor(context_, public_key_);
-  seal::Plaintext plain_text;
-  seal::Ciphertext cipher_text;
+  // //SEAL encryption_tools
+  // seal::Encryptor encryptor(context_, public_key_);
+  // seal::Plaintext plain_text;
+  // seal::Ciphertext cipher_text;
 
   for (size_t i = 0; i < ids.size(); i++) {
     EncryptedElement* element = result.mutable_encrypted_set()->add_elements();
@@ -138,23 +138,23 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
       *element->mutable_associated_data_2() = value_2.value().ToBytes();
 
     } else { //use SEAL
-      std::stringstream hex_string;
-      std::stringstream send_string;
+      // std::stringstream hex_string;
+      // std::stringstream send_string;
 
-      { // col 1
-        hex_string << std::hex << col_1[i].ToIntValue().value();
-        plain_text = hex_string.str();
-        encryptor.encrypt(plain_text,cipher_text);
-        cipher_text.save(send_string);
-        *element->mutable_associated_data_1() = send_string.str();
-      }
-      { // col 2
-        hex_string << std::hex << col_2[i].ToIntValue().value();
-        plain_text = hex_string.str();
-        encryptor.encrypt(plain_text,cipher_text);
-        cipher_text.save(send_string);
-        *element->mutable_associated_data_2() = send_string.str();
-      }
+      // { // col 1
+      //   hex_string << std::hex << col_1[i].ToIntValue().value();
+      //   plain_text = hex_string.str();
+      //   encryptor.encrypt(plain_text,cipher_text);
+      //   cipher_text.save(send_string);
+      //   *element->mutable_associated_data_1() = send_string.str();
+      // }
+      // { // col 2
+      //   hex_string << std::hex << col_2[i].ToIntValue().value();
+      //   plain_text = hex_string.str();
+      //   encryptor.encrypt(plain_text,cipher_text);
+      //   cipher_text.save(send_string);
+      //   *element->mutable_associated_data_2() = send_string.str();
+      // }
 
     }
 

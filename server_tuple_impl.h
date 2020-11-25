@@ -37,7 +37,7 @@ class PrivateIntersectionSumProtocolServerTupleImpl : public ProtocolServer {
   PrivateIntersectionSumProtocolServerTupleImpl(::private_join_and_compute::Context* ctx,
                                            std::vector<std::string> inputs,const int32_t use_seal)
       : ctx_(ctx), inputs_(std::move(inputs)),use_seal_(use_seal) {
-        if(use_seal_) setupSEAL();
+        // if(use_seal_) setupSEAL();
       }
 
   ~PrivateIntersectionSumProtocolServerTupleImpl() override = default;

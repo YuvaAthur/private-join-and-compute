@@ -147,6 +147,8 @@ DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen"
   ``` 
   0.0.0.0    california.sjsu-mtls.com
   ```
+# gRPC
++ https://github.com/grpc/grpc/blob/master/TROUBLESHOOTING.md   
 + Debugging network process
   + export GRPC_VERBOSITY=debug 
   + export GRPC_TRACE=all
@@ -154,6 +156,13 @@ DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen"
 + transport_security - traces metadata about secure channel establishment
   + export GRPC_TRACE=transport_security
   + export GRPC_TRACE=transport_security,handshaker
+
++ protocol error
+  + export GRPC_TRACE=api,call_error
+
++ Unset
+  + unset GRPC_VERBOSITY
+  + unset GRPC_TRACE
 
 ## Integration SEAL BFV HE
 
@@ -290,6 +299,10 @@ bazel-bin/generate_dummy_data \
 bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1 --use_seal=1
 
 bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1 --use_seal=1
+
+https://stackoverflow.com/questions/47125387/stringstream-and-binary-data
+If you want to read/write binary data you can't use << or >> you need to use the std::stringstream::read and std::stringstream::write functions.
+Or, pass ios::in | ios::out | ios::binary in constructor.
 
 
 
