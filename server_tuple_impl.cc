@@ -203,27 +203,27 @@ PrivateIntersectionSumProtocolServerTupleImpl::IntersectionAggregates(
         sum_1 =
           public_paillier.Add(sum_1, ctx_->CreateBigNum(element.associated_data_1()));
       } else {
-        std::cout << "Server: SEAL Computation 11 : Begin" << std::endl;
+        std::cout << "Server: SEAL Computation 11["<< count << "]: Begin" << std::endl;
         std::stringstream hex_string(element.associated_data_1(),(std::ios::in|std::ios::out|std::ios::binary));
         seal_data_1.load(context_,hex_string);
-        seal::Ciphertext seal_temp_1;
-        evaluator.add(seal_sum_1,seal_data_1,seal_temp_1);
-        seal_sum_1 = seal_temp_1;
-//        evaluator.add_inplace(seal_sum_1,seal_data_1);
-        //seal_sum_1 = seal_data_1;
+        // seal::Ciphertext seal_temp_1;
+        // evaluator.add(seal_sum_1,seal_data_1,seal_temp_1);
+        // seal_sum_1 = seal_temp_1;
+        evaluator.add_inplace(seal_sum_1,seal_data_1);
+        // seal_sum_1 = seal_data_1;
         hex_string.str("");
-        std::cout << "Server: SEAL Computation 11 : End" << std::endl;
+        std::cout << "Server: SEAL Computation 11["<< count << "]: End" << std::endl;
       }
     } else { // sum of squares
       if(use_seal_){
-        std::cout << "Server: SEAL Computation 12 : Begin" << std::endl;
+        std::cout << "Server: SEAL Computation 12["<< count << "]: Begin" << std::endl;
         std::stringstream hex_string(element.associated_data_1(),(std::ios::in|std::ios::out|std::ios::binary));
         seal_data_1.load(context_,hex_string);
         // evaluator.square_inplace(seal_data_1);
         // evaluator.add_inplace(seal_sum_1,seal_data_1);
         seal_sum_1 = seal_data_1;
         hex_string.str("");
-        std::cout << "Server: SEAL Computation 12 : End" << std::endl;
+        std::cout << "Server: SEAL Computation 12["<< count << "]: End" << std::endl;
       }
     }
     if(!op_2_){ // default is sum
@@ -231,22 +231,24 @@ PrivateIntersectionSumProtocolServerTupleImpl::IntersectionAggregates(
         sum_2 =
           public_paillier.Add(sum_2, ctx_->CreateBigNum(element.associated_data_2()));
       } else {
-        std::cout << "Server: SEAL Computation 21" << std::endl;
+        std::cout << "Server: SEAL Computation 21["<< count << "]: Begin" << std::endl;
         std::stringstream hex_string(element.associated_data_2(),(std::ios::in|std::ios::out|std::ios::binary));
         seal_data_2.load(context_,hex_string);
         evaluator.add_inplace(seal_sum_2,seal_data_2);
         // seal_sum_2 = seal_data_2;
         hex_string.str("");
+        std::cout << "Server: SEAL Computation 21["<< count << "]: End" << std::endl;
       }
     } else { // sum of squares
       if(use_seal_){
-        std::cout << "Server: SEAL Computation 22" << std::endl;
+        std::cout << "Server: SEAL Computation 22["<< count << "]: Begin" << std::endl;
         std::stringstream hex_string(element.associated_data_2(),(std::ios::in|std::ios::out|std::ios::binary));
         seal_data_2.load(context_,hex_string);
         // evaluator.square_inplace(seal_data_2);
         // evaluator.add_inplace(seal_sum_2,seal_data_2);
         seal_sum_2 = seal_data_2;
         hex_string.str("");
+        std::cout << "Server: SEAL Computation 22["<< count << "]: End" << std::endl;
       }
     }
     count++;

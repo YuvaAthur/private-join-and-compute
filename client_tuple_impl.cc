@@ -142,32 +142,31 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
       { // col 1
         std::stringstream hex_string(std::ios::in | std::ios::out | std::ios::binary);
         std::stringstream send_string(std::ios::in | std::ios::out | std::ios::binary);
-        std::cout <<"Client: SEAL Encrypt Col 1: Begin" << std::endl;
-        int x = 1; //debug
+        std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: Begin" << std::endl;
         hex_string << std::hex << col_1[i].ToIntValue().value();
         plain_text = hex_string.str();
-        std::cout <<"Client: SEAL Encrypt Col 1: value 0x" << plain_text.to_string() << std::endl;
+        std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: value 0x" << plain_text.to_string() << std::endl;
         encryptor.encrypt(plain_text,cipher_text);
         cipher_text.save(send_string);
         *element->mutable_associated_data_1() = send_string.str();
         hex_string.str("");
         send_string.str("");
-        std::cout <<"Client: SEAL Encrypt Col 1: End" << std::endl;
+        std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: End" << std::endl;
       }
       { // col 2
         std::stringstream hex_string(std::ios::in | std::ios::out | std::ios::binary);
         std::stringstream send_string(std::ios::in | std::ios::out | std::ios::binary);
-        std::cout <<"Client: SEAL Encrypt Col 2: Begin" << std::endl;        
-        int x = 2; //debug
+        std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: Begin" << std::endl;        
+        // int x = 2; //debug
         hex_string << std::hex << col_2[i].ToIntValue().value();
         plain_text = hex_string.str();
-        std::cout <<"Client: SEAL Encrypt Col 2: value 0x" << plain_text.to_string() << std::endl;
+        std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: value 0x" << plain_text.to_string() << std::endl;
         encryptor.encrypt(plain_text,cipher_text);
         cipher_text.save(send_string);
         *element->mutable_associated_data_2() = send_string.str();
         hex_string.str("");
         send_string.str("");
-        std::cout <<"Client: SEAL Encrypt Col 2: End" << std::endl;        
+        std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: End" << std::endl;        
       }
 
     }
