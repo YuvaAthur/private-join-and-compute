@@ -6,7 +6,7 @@
 using namespace std;
 using namespace seal;
 
-void example_bfv_basics()
+void example_bfv_basics(int input_x=0, int input_y=0)
 {
     print_example_banner("Example: BFV Basics");
 

@@ -6,7 +6,7 @@
 using namespace std;
 using namespace seal;
 
-int main()
+int main(int argc, char *argv[])
 {
 #ifdef SEAL_VERSION
     cout << "Microsoft SEAL version: " << SEAL_VERSION << endl;
@@ -37,10 +37,21 @@ int main()
         cout << "[" << setw(7) << right << megabytes << " MB] "
              << "Total allocation from the memory pool" << endl;
 
+
         int selection = 0;
+        int input_x, input_y;
+
+        if (argc>1){
+            // base 10 conversion. SEAL uses hexa internally
+            input_x = strtol (argv[1],NULL,10);
+            input_y = strtol (argv[2],NULL,10);
+        }
+
+        cout << " Received inputs [1] " << input_x << " [2] " << input_y << endl;
+
         bool invalid = true;
-        do
-        {
+        // do
+        // {
             cout << endl << "> Run example (1-2) or exit (0): ";
             if (!(cin >> selection))
             {
@@ -60,16 +71,18 @@ int main()
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
-        } while (!invalid);
+        // } while (!invalid);
+
 
         switch (selection)
         {
+
         case 1:
-            example_bfv_basics();
+            example_bfv_basics(input_x,input_y);
             break;
 
         case 2:
-            example_bfv_integ();
+            example_bfv_integ(input_x,input_y);
             break;
 /*
         case 2:
@@ -95,6 +108,7 @@ int main()
         case 0:
             return 0;
         }
+        return 0; // exit outer while
     }
 
     return 0;

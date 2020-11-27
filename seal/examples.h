@@ -19,9 +19,9 @@
 #include <numeric>
 #include "seal.h"
 
-void example_bfv_basics();
+void example_bfv_basics(int, int);
 
-void example_bfv_integ();
+void example_bfv_integ(int, int);
 /*
 void example_encoders();
 
