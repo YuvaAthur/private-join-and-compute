@@ -116,11 +116,18 @@ class InvokeServerHandleClientMessageSink : public MessageSink<ClientMessage> {
 int ExecuteProtocol() {
   ::private_join_and_compute::Context context;
 
+  std::cout << "Client: Command line " <<  std::endl;
+  std::cout << "    + use_mtls (0: local, 1: cert) " << std::int32_t(FLAGS_use_mtls) << std::endl;
+  std::cout << "    + use_seal (0: no, 1: yes) " << std::int32_t(FLAGS_use_seal) << std::endl;
+  std::cout << "    + multi_column (0: 1 Column, 1: 2 Columns) " << std::int32_t(FLAGS_multi_column) << std::endl;
+  std::cout << "    + operator_1 (0: SUM, 1: SUMSQ) " << std::int32_t(FLAGS_operator_1) << std::endl;
+  std::cout << "    + operator_2 (0: SUM, 1: SUMSQ) " << std::int32_t(FLAGS_operator_2) << std::endl;
+
+
   std::cout << "Client: Loading data..." << std::endl;
   auto maybe_client_identifiers_and_associated_values =
       ::private_join_and_compute::ReadClientDatasetFromFile(FLAGS_client_data_file, &context);
   
-  std::cout << "Client: MTLS Switch (0: local, 1: cert) " << std::int32_t(FLAGS_use_mtls) << std::endl;
   if (int32_t(FLAGS_use_mtls)){
     std::cout << "Client: Contacting server on " << FLAGS_port1 << std::endl;
   }else{

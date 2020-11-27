@@ -65,6 +65,13 @@ DEFINE_int32(use_seal,0,"Defines whether SEAL is to be used");
 
 
 int RunServer() {
+
+  std::cout << "Server: Command line " << std::endl;
+  std::cout << "    + use_mtls (0: local, 1: cert) " << std::int32_t(FLAGS_use_mtls) << std::endl;
+  std::cout << "    + use_seal (0: no, 1: yes) " << std::int32_t(FLAGS_use_seal) << std::endl;
+  std::cout << "    + multi_column (0: 1 Column, 1: 2 Columns) " << std::int32_t(FLAGS_multi_column) << std::endl;
+
+
   std::cout << "Server: loading data... " << std::endl;
   auto maybe_server_identifiers =
       ::private_join_and_compute::ReadServerDatasetFromFile(FLAGS_server_data_file);

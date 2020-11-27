@@ -142,31 +142,31 @@ PrivateIntersectionSumProtocolClientTupleImpl::EncryptCol(){
       { // col 1
         std::stringstream hex_string(std::ios::in | std::ios::out | std::ios::binary);
         std::stringstream send_string(std::ios::in | std::ios::out | std::ios::binary);
-        std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: Begin" << std::endl;
+        // std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: Begin" << std::endl;
         hex_string << std::hex << col_1[i].ToIntValue().value();
         plain_text = hex_string.str();
-        std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: value 0x" << plain_text.to_string() << std::endl;
+        // std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: value 0x" << plain_text.to_string() << std::endl;
         encryptor.encrypt(plain_text,cipher_text);
         cipher_text.save(send_string);
         *element->mutable_associated_data_1() = send_string.str();
         hex_string.str("");
         send_string.str("");
-        std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: End" << std::endl;
+        // std::cout <<"Client: SEAL Encrypt Col 1["<< i << "]: End" << std::endl;
       }
       { // col 2
         std::stringstream hex_string(std::ios::in | std::ios::out | std::ios::binary);
         std::stringstream send_string(std::ios::in | std::ios::out | std::ios::binary);
-        std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: Begin" << std::endl;        
+        // std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: Begin" << std::endl;        
         // int x = 2; //debug
         hex_string << std::hex << col_2[i].ToIntValue().value();
         plain_text = hex_string.str();
-        std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: value 0x" << plain_text.to_string() << std::endl;
+        // std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: value 0x" << plain_text.to_string() << std::endl;
         encryptor.encrypt(plain_text,cipher_text);
         cipher_text.save(send_string);
         *element->mutable_associated_data_2() = send_string.str();
         hex_string.str("");
         send_string.str("");
-        std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: End" << std::endl;        
+        // std::cout <<"Client: SEAL Encrypt Col 2["<< i << "]: End" << std::endl;        
       }
 
     }
@@ -304,19 +304,29 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::PrintOutput() {
               << maybe_converted_intersection_agg_2.value() 
               << std::endl;
   } else {
-    std::stringstream s1, s2;
+    std::stringstream s1, s2,op1,op2;
     int x1,x2;
 
     s1 << std::hex << decrypt_sum_1_.to_string();
     s1 >> x1;
     s2 << std::hex << decrypt_sum_2_.to_string();
     s2 >> x2;
-    std::cout << "Client: The intersection size is " << intersection_size_
-              << " and the intersection-agg-1 is "
-              << x1 
-              << " and the intersection-agg-2 is "
-              << x2 
-              << std::endl;
+
+    if(!op_1_){
+      op1 << " intersection sum ";
+    } else {
+      op1 << " intersection sum of squares ";
+    }
+    if(!op_2_){
+      op2 << " intersection sum ";
+    } else {
+      op2 << " intersection sum of squares ";
+    }
+
+
+    std::cout << "Client: The intersection size is " << intersection_size_ << std::endl;
+    std::cout << "    and the "<< op1.str() <<" is " << x1 << std::endl;
+    std::cout << "    and the "<< op2.str() <<" is " << x2 << std::endl;
 
   }
   return OkStatus();

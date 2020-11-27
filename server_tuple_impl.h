@@ -104,8 +104,8 @@ class PrivateIntersectionSumProtocolServerTupleImpl : public ProtocolServer {
   seal::EncryptionParameters parms_;
   std::shared_ptr<seal::SEALContext> context_;  
 
-  seal::Ciphertext seal_sum_1_;
-  seal::Ciphertext seal_sum_2_;
+  seal::Ciphertext seal_agg_1_;
+  seal::Ciphertext seal_agg_2_;
 
 };
 

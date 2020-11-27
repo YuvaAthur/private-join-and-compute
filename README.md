@@ -198,33 +198,20 @@ Client
 
 # Testing SEAL
 ```
-bazel-bin/generate_dummy_data --server_data_file=/tmp/dummy_server_data.csv --client_data_file=/tmp/dummy_client_data.csv --server_data_size=10 --client_data_size=10 --intersection_size=5 --max_associated_value=31
+bazel-bin/generate_dummy_data --server_data_file=/tmp/dummy_server_data.csv --client_data_file=/tmp/dummy_client_data.csv --server_data_size=3 --client_data_size=3 --intersection_size=2 --max_associated_value=31
 
-Aggregated values computed using vector algo: sum = 90, sum of squares = 1874, mean = 18, variance numerator = 254
-Aggregated values computed using vector algo: sum = 94, sum of squares = 1918, mean = 18.8, variance numerator = 257.2
-Generated Server dataset of size 10, Client dataset of size 10
+Aggregated values computed using vector algo: sum = 3, sum of squares = 5, mean = 1.5, variance numerator = 0.5
+Aggregated values computed using vector algo: sum = 34, sum of squares = 706, mean = 17, variance numerator = 481
+Generated Server dataset of size 3, Client dataset of size 3
 Passed flags passed aggregators: Operator 1 = 0, Operator 2 = 0
-Intersection size = 5
-Intersection aggregate 1 = 90
-Intersection aggregate 2 = 94
+Intersection size = 2
+Intersection aggregate 1 = 3
+Intersection aggregate 2 = 34
 ```
 
 ```
-bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv
-Client: Loading data...
-Client: MTLS Switch (0: local, 1: cert) 0
-Client: Contacting server on 0.0.0.0:10501
-Client: Generating keys...
-Client: Starting the protocol.
-Client: MTLS Switch (0: local, 1: cert) 0
-Client: Waiting for response and encrypted set from the server...
-Client: Received encrypted set from the server, double encrypting...
-Client: Sending double encrypted server data and single-encrypted client data to the server.
-Client: Waiting for encrypted intersection sum...
-Client: Sending double encrypted server data and single-encrypted client data to the server.
-Client: Waiting for encrypted intersection sum...
-Client: Received response from the server. Decrypting the intersection-sum.
-Client: The intersection size is 5 and the intersection-sum is 90
+bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1 --use_seal=1 --operator_2=1 --operator_1=1
+bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1 --use_seal=1
 ```
 ```
 bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1
