@@ -1,5 +1,14 @@
 # Adapting to CMPE 295 : Master's Project
 
+In this project we explore the extensions of Google's Private Join and Compute protocol in the following ways:
++ Extending PJC protocol to additional data columns and applying columnar aggregation based on supported homomorphic operators, 
++ Exploring additional operations based on RLWE homomorphic encryption schemes
++ Ensuring stronger security using mutual authentication of communicating parties using certificates, and
+
+This project has been submitted to The Faculty of the College of 
+Engineering, San Jose State University In Partial Fulfillment
+Of the Requirements for the Degree Master of Science in Software Engineering, Dec 2020
+
 ## State Model between Client & Server
 
 ID Keys: Encrypted using Communtative Cipher
@@ -17,8 +26,8 @@ Business Data:
 + Ref: https://developers.google.com/protocol-buffers/docs/reference/proto2-spec 
 
 
-1) Adding another business data column: done
-+ match.proto: Extended to add another associated data element
+Adding another business data column: 
++ match.proto: 
 ```c++
 message EncryptedElement {
   optional bytes element = 1;
@@ -27,10 +36,31 @@ message EncryptedElement {
 } 
 ```
 
+
++ private_intersection_sum.proto
+```c++
+  message ClientRoundOne {
+    optional bytes public_key = 1;
+    optional EncryptedSet encrypted_set = 2;
+    optional EncryptedSet reencrypted_set = 3;
+    optional int32 op_code_1 = 4;
+    optional int32 op_code_2 = 5;
+  }
+
+  message ServerRoundTwo {
+    optional int64 intersection_size = 1;
+    optional bytes encrypted_sum_1 = 2;
+    optional bytes encrypted_sum_2 = 3;
+  }  
+```
+
+From a protobuf implementation point of view, using enumerators requires additional checks. So, while the operators (op_code_1 & op_code_2) can be implemented using enumerators, this was not done for this version of the code. 
+
+
+## Future Work
 2) Adding operator codes: 
 + match.proto
 ```c++
-//YAR:: Add: This depends on the homomorphic encryption used
 //  This gets applied on ONE Column only
 //  Possible : 
 //      1) sum(col) 
@@ -46,38 +76,33 @@ message OpCode {
 }
 ```
 
-+ private_intersection_sum.proto
-```c++
-  message ClientRoundOne {
-    optional bytes public_key = 1;
-    optional EncryptedSet encrypted_set = 2;
-    optional EncryptedSet reencrypted_set = 3;
-    optional OpCode op_code_1 = 4;
-    optional OpCode op_code_2 = 5;
-  }
-
-  message ServerRoundTwo {
-    optional int64 intersection_size = 1;
-    optional bytes encrypted_sum_1 = 2;
-    optional bytes encrypted_sum_2 = 3;
-  }  
-```
-
 + Gettting value from enumerator
   + Ref: https://stackoverflow.com/questions/32161409/how-to-get-protobuf-enum-as-string
 
 
 # Implementation Choices
 
+Extensions and integrations were done in the following sequence
++ Adding one extra data column and adapting dummy data generation
++ Extending to mTLS using gRPC for certificate based authentication
++ Integrating Microsoft SEAL library to compute sum of squares
+
 ## Code refactoring 
 Two client implementations:
 + client_impl : Original Code
-+ client_tuple_impl : Support 2 data columns
++ client_tuple_impl :
+  + Supports 2 data columns
+  + Supports mtls
+  + Supports integration to Microsoft SEAL (library to be built independently)
 
 Two server implementations:
 + server_impl : Original Code
-+ server_tuple_impl : Supports 2 aggregation on two data columns 
++ server_tuple_impl : 
+  + Supports 2 data columns
+  + Supports mtls
+  + Supports integration to Microsoft SEAL (library to be built independently)
 
+## Flags: for 2 column implementation
 Client Flags
 ```c++
 DEFINE_string(port, "0.0.0.0:10501", "Port on which to contact server");
@@ -91,14 +116,6 @@ DEFINE_int32(
 
 //--mult_column : binary : 0 means 1 column (default), 1 means 2 columns
 DEFINE_int32(multi_column,0,"Indicates 1 or 2 columns in the Client Data Set");
-
-//enumerator value sent in protocol
-DEFINE_int32(operator_1,0,"Operator One");
-DEFINE_int32(operator_2,0,"Operator Two");
-    // SUM = 0;
-    // SUMSQ = 1;
-    // VARN = 2;
-
 ```
 Server Flags
 ```c++
@@ -112,8 +129,21 @@ DEFINE_int32(multi_column,0,"Indicates 1 or 2 columns in the Client Data Set");
 + Dummy Set Generation
 Ref: https://stackoverflow.com/questions/7616511/calculate-mean-and-standard-deviation-from-a-vector-of-samples-in-c-using-boos
 
-# Integrating MTLS on client and server
-New flag for client 
++ The data set generation was extended to 2 columns and computing additional values. Example run and its output is 
+```
+bazel-bin/generate_dummy_data --server_data_file=/tmp/dummy_server_data.csv --client_data_file=/tmp/dummy_client_data.csv --server_data_size=3 --client_data_size=3 --intersection_size=2 --max_associated_value=31
+
+Aggregated values computed using vector algo: sum = 3, sum of squares = 5, mean = 1.5, variance numerator = 0.5
+Aggregated values computed using vector algo: sum = 34, sum of squares = 706, mean = 17, variance numerator = 481
+Generated Server dataset of size 3, Client dataset of size 3
+Passed flags passed aggregators: Operator 1 = 0, Operator 2 = 0
+Intersection size = 2
+Intersection aggregate 1 = 3
+Intersection aggregate 2 = 34
+```
+
+## Flags: for mTLS on client and server
+Client flags
 ```c++
 // switch to use MTLS
 DEFINE_int32(use_mtls,0,"Swtich to use MTLS approach,dafault no MTLS");
@@ -123,7 +153,7 @@ DEFINE_string(port0, "0.0.0.0:10501", "Port on which to contact server");
 DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to contact server");
 
 ```
-Added mtls flag for server
+Server flags
 ```c++
 // switch to use MTLS
 DEFINE_int32(use_mtls,0,"Swtich to use MTLS approach,dafault no MTLS");
@@ -133,7 +163,7 @@ DEFINE_string(port0, "0.0.0.0:10501", "Port on which to listen");
 DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen");
 
 ```
-## MTLS extensions:
+### mTLS extension requirements (not in repo)
 + Client
   + client.crt
   + client.key
@@ -147,7 +177,7 @@ DEFINE_string(port1, "california.sjsu-mtls.com:10501", "Port on which to listen"
   ``` 
   0.0.0.0    california.sjsu-mtls.com
   ```
-# gRPC
+## gRPC debugging steps
 + https://github.com/grpc/grpc/blob/master/TROUBLESHOOTING.md   
 + Debugging network process
   + export GRPC_VERBOSITY=debug 
@@ -175,7 +205,9 @@ Client
   + e = h.e.(secret_key_decrypt(4))
 + Value passed to server
   + e
-+ (seal_client --encrypt=4) = e
++ Options:
+  + integrate into code
+  + command line call (seal_client --encrypt=4) = e
 
 Server
 + Given
@@ -186,17 +218,55 @@ Server
   + e2 = h.e.(public_key_sq(e))
 + Value passed to client
   + e2
-+ (seal_server --evalue=e) = e2
++ Options
+  + integrate into code
+  + command line call (seal_server --evalue=e) = e2
 + Server
-  + sum (e2) 
+  + square (e2) 
 
 Client
 + Value received = e2
 + Final value
   + d = h.e.(secret_key_decrypt(e2)) = x^2
-+ (seal_client --decrypt=e2) = x^2
++ Options:
+  + integrate into code
+  + (seal_client --decrypt=e2) = x^2
 
-# Testing SEAL
+## Flags: for SEAL integration
+Client Flags
+```c++
+//enumerator value sent in protocol
+DEFINE_int32(operator_1,0,"Operator One");
+DEFINE_int32(operator_2,0,"Operator Two");
+    // SUM = 0;
+    // SUMSQ = 1;
+
+//integrating Microsoft SEAL FHE
+DEFINE_int32(use_seal,0,"Defines whether SEAL is to be used");
+```
+Server Flags
+```c++
+//integrating Microsoft SEAL FHE
+DEFINE_int32(use_seal,0,"Defines whether SEAL is to be used");
+
+```
+
+
+## Testing SEAL
+In this final version of implementation [Nov 2020], we achieve integration of Microsoft SEAL using a static library link and built the whole project using Bazel Build.
+
+We used the following initializing parameters for SEAL:
+```c++
+  seal::EncryptionParameters parms(seal::scheme_type::BFV);
+  size_t poly_modulus_degree = 4096;
+  parms.set_poly_modulus_degree(poly_modulus_degree);
+  parms.set_coeff_modulus(seal::CoeffModulus::BFVDefault(poly_modulus_degree));
+  parms.set_plain_modulus(1024);
+```
+
+In our tests, this limits the value of x to 31 due to inherent modular arithmetic. More work needs to be done to test what modulus values can extend the range of values that can be used.
+
+
 ```
 bazel-bin/generate_dummy_data --server_data_file=/tmp/dummy_server_data.csv --client_data_file=/tmp/dummy_client_data.csv --server_data_size=3 --client_data_size=3 --intersection_size=2 --max_associated_value=31
 
@@ -215,9 +285,18 @@ bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1 
 ```
 ```
 bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1
-bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1 : Fails!
+bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1
 ```
 
+# Command line for all features:
+
+```
+bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1 --use_mtls=1 --use_seal=1 --operator_1=0 --operator_2=1
+bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1 --use_mtls=1 --use_seal=1
+```
+Server & Client ports can be changed if required using --port1 when using --use_mtls=1 option
+
+The code has been tested on Ubuntu VMs representing two parties with these flags.
 
 # Bazel Build Process
 
@@ -308,7 +387,8 @@ this rule is missing dependency declarations for the following files included by
   '/usr/lib/gcc/x86_64-linux-gnu/9/include/syslimits.h'
   + Fix: Use bazel clean --expunge [https://stackoverflow.com/questions/48155976/bazel-undeclared-inclusions-errors-after-updating-gcc/48524741#48524741]
 
-# Original: Private Join and Compute
+# Original: Private Join and Compute documentation from Google 
+# [project was forked from Google's open source code]
 
 This project contains an implementation of the "Private Join and Compute"
 functionality. This functionality allows two users, each holding an input file,

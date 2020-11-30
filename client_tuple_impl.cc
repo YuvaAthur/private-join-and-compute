@@ -209,8 +209,8 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::DecryptResult(
     sum_2.load(context_,hex_string_2);
     decryptor.decrypt(sum_1,decrypt_sum_1_);
     decryptor.decrypt(sum_2,decrypt_sum_2_);
-    std::cout << "Client: Decrypted sum_1 is 0x" << decrypt_sum_1_.to_string() 
-      <<" sum_2 is 0x" << decrypt_sum_2_.to_string() << std::endl; 
+    // std::cout << "Client: Decrypted sum_1 is 0x" << decrypt_sum_1_.to_string() 
+    //   <<" sum_2 is 0x" << decrypt_sum_2_.to_string() << std::endl; 
   }
 
   return OkStatus();
@@ -298,9 +298,9 @@ Status PrivateIntersectionSumProtocolClientTupleImpl::PrintOutput() {
  
   if(!use_seal_){
     std::cout << "Client: The intersection size is " << intersection_size_
-              << " and the intersection-agg-1 is "
+              << " and the sum 1 is "
               << maybe_converted_intersection_agg_1.value() 
-              << " and the intersection-agg-2 is "
+              << " and the sum 2 is "
               << maybe_converted_intersection_agg_2.value() 
               << std::endl;
   } else {
