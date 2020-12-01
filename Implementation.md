@@ -134,7 +134,7 @@ message OpCode {
   + Ref: https://stackoverflow.com/questions/32161409/how-to-get-protobuf-enum-as-string
 
 
-# Implementation Choices
+## Implementation Choices
 
 Extensions and integrations were done in the following sequence
 + Adding one extra data column and adapting dummy data generation
@@ -291,12 +291,19 @@ bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1
 bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1
 ```
 
-# Command line for all features:
+## Command line for all features:
 
+```
+bazel-bin/server --server_data_file=/tmp/dummy_server_data.csv --multi_column=1 --use_mtls=1 --use_seal=1
+bazel-bin/client --client_data_file=/tmp/dummy_client_data.csv --multi_column=1 --use_mtls=1 --use_seal=1 --operator_1=0 --operator_2=1
+```
+Server & Client ports can be changed if required using --port1 when using --use_mtls=1 option
 
-# Bazel Build Process
+The code has been tested on Ubuntu VMs representing two parties with these flags.
 
-## Additional BUILD file options
+## Bazel Build Process
+
+### Additional BUILD file options
 + Setting for C++17 for build
   + update .bazelrc
 ```
@@ -318,7 +325,7 @@ Log of Bazel build
 -------------------
 bazel build :all >& /tmp/bazel_build.log
 
-## Bazel build errors & fixes
+### Bazel build errors & fixes
 + On 2020.04 Ubuntu upgrade I see the following error:
 ERROR: /home/yuva/Code/private-join-and-compute/BUILD:30:1: undeclared inclusion(s) in rule '//:_private_join_and_compute_proto_only':
 this rule is missing dependency declarations for the following files included by 'private_join_and_compute.pb.cc':
